@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #faf6ec;
+  --paper-alt: #f2ead9;
+  --paper-strong: #ece1ca;
+  --line: #e2d6ba;
+  --line-strong: #cbb98f;
+
+  --ink: #211d15;
+  --ink-muted: #6b6252;
+  --ink-faint: #a39877;
+
+  --forest: #253526;
+  --forest-soft: #3c5240;
+  --forest-tint: #e9ede3;
+
+  --sand: #a17f3d;
+  --sand-tint: #f1e6cd;
+
+  --brick: #8a3f2f;
+  --brick-tint: #f3e3dc;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-paper: var(--paper);
+  --color-paper-alt: var(--paper-alt);
+  --color-paper-strong: var(--paper-strong);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-forest: var(--forest);
+  --color-forest-soft: var(--forest-soft);
+  --color-forest-tint: var(--forest-tint);
+
+  --color-sand: var(--sand);
+  --color-sand-tint: var(--sand-tint);
+
+  --color-brick: var(--brick);
+  --color-brick-tint: var(--brick-tint);
+
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-work-sans);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--forest);
+  color: var(--paper);
+}
+
+.motif-divider {
+  background-image: radial-gradient(circle, var(--line-strong) 1px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
