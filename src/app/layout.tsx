@@ -16,7 +16,7 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://community-books.vercel.app"),
+  metadataBase: new URL("https://readdeen4free.vercel.app"),
   title: {
     default: `${SITE_NAME} — ${SITE_TAGLINE}`,
     template: `%s — ${SITE_NAME}`,
