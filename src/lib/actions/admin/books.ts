@@ -11,9 +11,6 @@ export type BookFormState =
   | { status: "idle" }
   | { status: "error"; message: string; fieldErrors?: Record<string, string[]> };
 
-const initialState: BookFormState = { status: "idle" };
-export { initialState as initialBookFormState };
-
 function parseBookForm(formData: FormData) {
   return bookSchema.safeParse({
     title: formData.get("title"),
