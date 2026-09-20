@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Work_Sans } from "next/font/google";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
+import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/constants";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -16,12 +16,24 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://community-books.vercel.app"),
   title: {
     default: `${SITE_NAME} — ${SITE_TAGLINE}`,
     template: `%s — ${SITE_NAME}`,
   },
-  description:
-    "Ich gebe einen Teil meiner Bibliothek kostenlos an meine Community weiter. Such dir ein Buch aus, das dir Wissen bringt.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    type: "website",
+    locale: "de_DE",
+  },
+  twitter: {
+    card: "summary",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

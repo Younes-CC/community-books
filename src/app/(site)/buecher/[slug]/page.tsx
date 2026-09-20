@@ -38,8 +38,9 @@ export default async function BookDetailPage({
         <div>
           <h1 className="font-serif text-3xl leading-tight text-ink">{book.title}</h1>
 
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-4">
             <AvailabilityBadge stockAvailable={book.stock_available} />
+            <span className="text-sm text-ink-faint">Zustand: Neu</span>
           </div>
 
           {book.description && (

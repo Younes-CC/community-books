@@ -1,5 +1,8 @@
-export const SITE_NAME = "Community Books";
+export const SITE_NAME = "readdeen4free";
 export const SITE_TAGLINE = "Bücher, die weitergegeben werden.";
+export const SITE_EYEBROW = "Lesen · Lernen · Weitergeben";
+export const SITE_DESCRIPTION =
+  "Neue islamische Bücher, kostenlos für dich. Bei Versand übernimmst du lediglich Versand und Verpackung.";
 
 export const COUNTRIES = [
   "Deutschland",

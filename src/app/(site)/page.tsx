@@ -3,7 +3,7 @@ import { getPublicBooks } from "@/lib/data/books";
 import { BookGrid } from "@/components/books/book-grid";
 import { LinkButton } from "@/components/ui/button";
 import { GeometricMark } from "@/components/ui/geometric-mark";
-import { SITE_TAGLINE } from "@/lib/constants";
+import { SITE_TAGLINE, SITE_EYEBROW } from "@/lib/constants";
 
 export default async function HomePage() {
   const { books, total } = await getPublicBooks({ page: 1 });
@@ -15,18 +15,17 @@ export default async function HomePage() {
         <div className="max-w-2xl">
           <div className="mb-6 flex items-center gap-2 text-ink-faint">
             <GeometricMark className="h-4 w-4" />
-            <span className="text-xs uppercase tracking-[0.2em]">Kostenlos weitergegeben</span>
+            <span className="text-xs uppercase tracking-[0.2em]">{SITE_EYEBROW}</span>
           </div>
 
           <h1 className="font-serif text-4xl leading-[1.1] text-ink sm:text-5xl">
             {SITE_TAGLINE}
           </h1>
 
-          <p className="mt-5 max-w-lg text-[1.05rem] leading-relaxed text-ink-muted">
-            Ich gebe einen Teil meiner Bibliothek kostenlos an meine Community weiter. Such
-            dir ein Buch aus, das dir Wissen bringt — und gib dieses Wissen irgendwann selbst
-            weiter. Das Buch ist kostenlos, bei Versand übernimmst du lediglich Verpackung
-            und Porto.
+          <p className="mt-5 max-w-md text-[1.05rem] leading-relaxed text-ink-muted">
+            Neue islamische Bücher. Kostenlos für dich.
+            <br />
+            Bei Versand übernimmst du lediglich Versand und Verpackung.
           </p>
 
           <div className="mt-8">
@@ -52,7 +51,7 @@ export default async function HomePage() {
           {[
             { step: "01", title: "Buch auswählen", text: "Durchstöbere den Katalog und wähle ein Buch, das dir wirklich weiterhilft." },
             { step: "02", title: "Versand oder Abholung", text: "Entscheide dich für persönliche Abholung oder Versand zu dir nach Hause." },
-            { step: "03", title: "Bestätigung erhalten", text: "Du erhältst eine Bestellnummer und alle weiteren Schritte per E-Mail-Kontakt." },
+            { step: "03", title: "Bestätigung erhalten", text: "Du erhältst eine Bestellnummer als Bestätigung deiner Reservierung." },
           ].map((item) => (
             <div key={item.step}>
               <span className="font-serif text-sm text-ink-faint">{item.step}</span>

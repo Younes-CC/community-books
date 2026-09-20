@@ -156,25 +156,27 @@ export function OrderWizard({
         )}
       </div>
 
-      {fulfillment === "shipping" && (
-        <div className="mt-6 space-y-1.5 border-t border-line pt-5 text-sm">
-          <div className="flex justify-between text-ink-muted">
-            <span>Buch</span>
-            <span>{formatPrice(0)}</span>
-          </div>
+      <div className="mt-6 space-y-1.5 border-t border-line pt-5 text-sm">
+        <div className="flex justify-between text-ink-muted">
+          <span>Buch</span>
+          <span>{formatPrice(0)}</span>
+        </div>
+        {fulfillment === "shipping" && (
           <div className="flex justify-between text-ink-muted">
             <span>Versand &amp; Verpackung</span>
             <span>{formatPrice(shippingPrice)}</span>
           </div>
-          <div className="flex justify-between border-t border-line pt-1.5 font-medium text-ink">
-            <span>Gesamt</span>
-            <span>{formatPrice(shippingPrice)}</span>
-          </div>
-          <p className="pt-2 text-xs text-ink-faint">
-            Das Buch selbst ist kostenlos. Du übernimmst lediglich Versand und Verpackung.
-          </p>
+        )}
+        <div className="flex justify-between border-t border-line pt-1.5 font-medium text-ink">
+          <span>Gesamt</span>
+          <span>{formatPrice(fulfillment === "shipping" ? shippingPrice : 0)}</span>
         </div>
-      )}
+        <p className="pt-2 text-xs text-ink-faint">
+          {fulfillment === "shipping"
+            ? "Das Buch ist kostenlos. Du übernimmst lediglich Versand und Verpackung."
+            : "Das Buch ist bei persönlicher Abholung vollständig kostenlos."}
+        </p>
+      </div>
 
       <button
         type="submit"
@@ -184,8 +186,8 @@ export function OrderWizard({
         {pending
           ? "Wird verarbeitet…"
           : fulfillment === "shipping"
-            ? "Bestellung abschließen"
-            : "Buch reservieren"}
+            ? "Reservierung abschließen"
+            : "Kostenlos reservieren"}
       </button>
     </form>
   );
@@ -248,7 +250,7 @@ function SuccessPanel({
     <div className="rounded-md border border-line bg-paper-alt p-6">
       <CircleCheck className="h-6 w-6 text-forest" strokeWidth={1.5} />
       <h2 className="mt-3 font-serif text-xl text-ink">
-        {state.fulfillmentType === "shipping" ? "Bestellung erhalten" : "Buch reserviert"}
+        {state.fulfillmentType === "shipping" ? "Reservierung erhalten" : "Buch reserviert"}
       </h2>
 
       <p className="mt-2 text-sm text-ink-muted">
@@ -256,27 +258,29 @@ function SuccessPanel({
         <span className="font-medium text-ink">{state.orderNumber}</span>
       </p>
 
+      <div className="mt-4 space-y-1.5 text-sm">
+        <div className="flex justify-between text-ink-muted">
+          <span>Buch</span>
+          <span>{formatPrice(0)}</span>
+        </div>
+        {state.fulfillmentType === "shipping" && (
+          <div className="flex justify-between text-ink-muted">
+            <span>Versand &amp; Verpackung</span>
+            <span>{formatPrice(state.shippingPrice)}</span>
+          </div>
+        )}
+        <div className="flex justify-between border-t border-line pt-1.5 font-medium text-ink">
+          <span>Gesamt</span>
+          <span>{formatPrice(state.total)}</span>
+        </div>
+      </div>
+
       {state.fulfillmentType === "pickup" ? (
         <p className="mt-4 text-sm leading-relaxed text-ink-muted">
           Dein Buch ist reserviert. Die Details zur Übergabe erhältst du separat per E-Mail.
         </p>
       ) : (
         <>
-          <div className="mt-4 space-y-1.5 text-sm">
-            <div className="flex justify-between text-ink-muted">
-              <span>Buch</span>
-              <span>{formatPrice(0)}</span>
-            </div>
-            <div className="flex justify-between text-ink-muted">
-              <span>Versand &amp; Verpackung</span>
-              <span>{formatPrice(state.shippingPrice)}</span>
-            </div>
-            <div className="flex justify-between border-t border-line pt-1.5 font-medium text-ink">
-              <span>Gesamt</span>
-              <span>{formatPrice(state.total)}</span>
-            </div>
-          </div>
-
           {state.reservationExpiresAt && (
             <p className="mt-4 text-xs text-ink-faint">
               Deine Reservierung ist gültig bis {formatDate(state.reservationExpiresAt)} (
@@ -291,7 +295,7 @@ function SuccessPanel({
               rel="noopener noreferrer"
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-sm font-medium text-paper hover:bg-forest-soft"
             >
-              Versandkosten bezahlen
+              Versand &amp; Verpackung bezahlen
               <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.5} />
             </a>
           )}

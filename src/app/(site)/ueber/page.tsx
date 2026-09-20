@@ -10,19 +10,17 @@ export default function AboutPage() {
 
       <div className="mt-6 space-y-5 text-[1.02rem] leading-relaxed text-ink-muted">
         <p>
-          Über die Jahre ist eine große persönliche Bibliothek zusammengekommen — mehr Bücher,
-          als ich selbst je wieder lesen werde. Statt sie ungenutzt im Regal stehen zu lassen,
-          gebe ich einen Teil davon kostenlos an meine Community weiter.
+          Ich habe diese Bücher gekauft, um sie kostenlos weiterzugeben. Nicht, weil Bücher
+          keinen Wert haben — sondern weil Wissen einen Wert hat.
         </p>
         <p>
-          Die Bücher werden nicht verkauft. Jedes Buch auf dieser Seite ist kostenlos. Bei
-          Versand übernimmst du lediglich die tatsächlichen Kosten für Verpackung und Porto —
-          nicht mehr.
+          Die Idee ist einfach: Such dir ein Buch aus, lies es und nimm etwas daraus mit. Wenn
+          es dir Mehrwert gebracht hat, gib dieses Wissen irgendwann selbst weiter.
         </p>
         <p>
-          Die Idee dahinter ist einfach: Wissen gewinnt an Wert, wenn es weitergegeben wird.
-          Wer ein Buch mitnimmt, ist eingeladen, es später selbst weiterzugeben — an jemanden,
-          der es gerade braucht.
+          Die Bücher selbst sind immer kostenlos. Bei Versand übernimmst du lediglich die
+          tatsächlichen Kosten für Verpackung und Porto — bei persönlicher Abholung fällt gar
+          nichts an.
         </p>
       </div>
 
