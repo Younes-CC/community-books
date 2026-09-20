@@ -23,12 +23,11 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-serif text-lg text-ink">1. Verantwortliche Stelle</h2>
           <p className="mt-2">
-            Verantwortlich für die Datenverarbeitung auf dieser Website ist:
+            Verantwortlich für die Datenverarbeitung auf dieser Website ist der Betreiber von{" "}
+            {SITE_NAME}, erreichbar unter:
           </p>
           <p className="mt-2">
-            <Placeholder>[Name / Anschrift ergänzen]</Placeholder>
-            <br />
-            <Placeholder>[E-Mail-Adresse ergänzen]</Placeholder>
+            <Placeholder>[Kontakt-E-Mail-Adresse ergänzen]</Placeholder>
           </p>
         </section>
 
