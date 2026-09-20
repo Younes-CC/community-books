@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { ImageDropzone } from "@/components/admin/image-dropzone";
-import { DEFAULT_CATEGORIES, CONDITIONS } from "@/lib/constants";
 import { createBookAction, updateBookAction, type BookFormState } from "@/lib/actions/admin/books";
 import type { AdminBook } from "@/lib/data/admin/books";
 
@@ -27,47 +26,6 @@ export function BookForm({ book }: { book?: AdminBook }) {
 
         <div className="flex-1 space-y-4">
           <Field label="Titel" name="title" defaultValue={book?.title} errors={errs(state, "title")} required />
-          <Field label="Autor" name="author" defaultValue={book?.author} errors={errs(state, "author")} required />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1.5 block text-sm text-ink-muted" htmlFor="category">
-                Kategorie
-              </label>
-              <input
-                id="category"
-                name="category"
-                list="category-options"
-                defaultValue={book?.category}
-                required
-                className="w-full rounded-md border border-line-strong bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-forest focus:outline-none"
-              />
-              <datalist id="category-options">
-                {DEFAULT_CATEGORIES.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm text-ink-muted" htmlFor="condition">
-                Zustand
-              </label>
-              <input
-                id="condition"
-                name="condition"
-                list="condition-options"
-                defaultValue={book?.condition ?? "Gut"}
-                required
-                className="w-full rounded-md border border-line-strong bg-paper px-3.5 py-2.5 text-sm text-ink focus:border-forest focus:outline-none"
-              />
-              <datalist id="condition-options">
-                {CONDITIONS.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-          </div>
 
           <Field
             label="Anzahl Exemplare"

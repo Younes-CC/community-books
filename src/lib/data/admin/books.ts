@@ -5,10 +5,7 @@ export type AdminBook = {
   id: string;
   slug: string;
   title: string;
-  author: string;
-  category: string;
   description: string;
-  condition: string;
   image_path: string | null;
   stock_total: number;
   stock_available: number;
@@ -21,7 +18,7 @@ export async function getAdminBooks(): Promise<AdminBook[]> {
   const { data, error } = await supabase
     .from("books")
     .select(
-      "id, slug, title, author, category, description, condition, image_path, stock_total, stock_available, is_active, created_at",
+      "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -34,7 +31,7 @@ export async function getAdminBookById(id: string): Promise<AdminBook | null> {
   const { data, error } = await supabase
     .from("books")
     .select(
-      "id, slug, title, author, category, description, condition, image_path, stock_total, stock_available, is_active, created_at",
+      "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at",
     )
     .eq("id", id)
     .maybeSingle();

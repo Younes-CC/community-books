@@ -43,7 +43,7 @@ export default async function AdminOrderDetailPage({
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-          <Field label="Buch" value={`${order.book_title_snapshot} — ${order.book_author_snapshot}`} full />
+          <Field label="Buch" value={order.book_title_snapshot} full />
           <Field label="Name" value={`${order.first_name} ${order.last_name}`} />
           <Field label="E-Mail" value={order.email} />
           <Field label="Social" value={order.social_username || "—"} />

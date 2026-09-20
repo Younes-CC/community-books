@@ -69,9 +69,6 @@ export type Database = {
       }
       books: {
         Row: {
-          author: string
-          category: string
-          condition: string
           created_at: string
           description: string
           id: string
@@ -84,9 +81,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          author: string
-          category: string
-          condition?: string
           created_at?: string
           description?: string
           id?: string
@@ -99,9 +93,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          author?: string
-          category?: string
-          condition?: string
           created_at?: string
           description?: string
           id?: string
@@ -117,7 +108,6 @@ export type Database = {
       }
       orders: {
         Row: {
-          book_author_snapshot: string
           book_id: string
           book_title_snapshot: string
           cancelled_at: string | null
@@ -147,7 +137,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          book_author_snapshot: string
           book_id: string
           book_title_snapshot: string
           cancelled_at?: string | null
@@ -177,7 +166,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          book_author_snapshot?: string
           book_id?: string
           book_title_snapshot?: string
           cancelled_at?: string | null
@@ -248,7 +236,6 @@ export type Database = {
       admin_set_order_status: {
         Args: { p_action: string; p_order_id: string }
         Returns: {
-          book_author_snapshot: string
           book_id: string
           book_title_snapshot: string
           cancelled_at: string | null

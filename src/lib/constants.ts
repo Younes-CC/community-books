@@ -1,19 +1,6 @@
 export const SITE_NAME = "Community Books";
 export const SITE_TAGLINE = "Bücher, die weitergegeben werden.";
 
-export const DEFAULT_CATEGORIES = [
-  "Deen",
-  "Persönlichkeitsentwicklung",
-  "Finanzen",
-  "Wirtschaft",
-  "Geschichte",
-  "Gesundheit",
-  "Biografie",
-  "Sonstiges",
-] as const;
-
-export const CONDITIONS = ["Neuwertig", "Sehr gut", "Gut", "Gebraucht, gut lesbar"] as const;
-
 export const COUNTRIES = [
   "Deutschland",
   "Österreich",

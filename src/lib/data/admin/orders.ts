@@ -7,7 +7,6 @@ export type AdminOrderRow = {
   order_number: string;
   created_at: string;
   book_title_snapshot: string;
-  book_author_snapshot: string;
   first_name: string;
   last_name: string;
   fulfillment_type: string;
@@ -51,7 +50,7 @@ export async function getAdminOrders(params: { filter?: string }): Promise<Admin
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, book_title_snapshot, book_author_snapshot, first_name, last_name, fulfillment_type, payment_status, order_status, total",
+      "id, order_number, created_at, book_title_snapshot, first_name, last_name, fulfillment_type, payment_status, order_status, total",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -71,7 +70,7 @@ export async function getAdminOrderById(id: string): Promise<AdminOrderDetail | 
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, book_title_snapshot, book_author_snapshot, first_name, last_name, email, social_username, fulfillment_type, street, house_number, postal_code, city, country, shipping_price, total, payment_status, order_status, reservation_expires_at, notes, book_id, paid_at, shipped_at, completed_at, cancelled_at, books(image_path)",
+      "id, order_number, created_at, book_title_snapshot, first_name, last_name, email, social_username, fulfillment_type, street, house_number, postal_code, city, country, shipping_price, total, payment_status, order_status, reservation_expires_at, notes, book_id, paid_at, shipped_at, completed_at, cancelled_at, books(image_path)",
     )
     .eq("id", id)
     .maybeSingle();

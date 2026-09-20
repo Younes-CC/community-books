@@ -6,13 +6,11 @@ export function Pagination({
   pageSize,
   total,
   q,
-  category,
 }: {
   page: number;
   pageSize: number;
   total: number;
   q?: string;
-  category?: string;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (totalPages <= 1) return null;
@@ -20,7 +18,6 @@ export function Pagination({
   const buildHref = (targetPage: number) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    if (category) params.set("kategorie", category);
     if (targetPage > 1) params.set("seite", String(targetPage));
     const qs = params.toString();
     return qs ? `/buecher?${qs}` : "/buecher";

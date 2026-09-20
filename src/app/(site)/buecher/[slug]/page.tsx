@@ -14,7 +14,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const book = await getPublicBookBySlug(slug);
   if (!book) return {};
-  return { title: `${book.title} — ${book.author}` };
+  return { title: book.title };
 }
 
 export default async function BookDetailPage({
@@ -36,13 +36,10 @@ export default async function BookDetailPage({
         </div>
 
         <div>
-          <span className="text-xs uppercase tracking-wide text-ink-faint">{book.category}</span>
-          <h1 className="mt-2 font-serif text-3xl leading-tight text-ink">{book.title}</h1>
-          <p className="mt-1.5 text-ink-muted">{book.author}</p>
+          <h1 className="font-serif text-3xl leading-tight text-ink">{book.title}</h1>
 
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4">
             <AvailabilityBadge stockAvailable={book.stock_available} />
-            <span className="text-sm text-ink-faint">Zustand: {book.condition}</span>
           </div>
 
           {book.description && (

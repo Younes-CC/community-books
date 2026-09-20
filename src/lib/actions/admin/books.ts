@@ -14,10 +14,7 @@ export type BookFormState =
 function parseBookForm(formData: FormData) {
   return bookSchema.safeParse({
     title: formData.get("title"),
-    author: formData.get("author"),
-    category: formData.get("category"),
     description: formData.get("description"),
-    condition: formData.get("condition"),
     stockTotal: formData.get("stockTotal"),
     imagePath: formData.get("imagePath"),
   });
@@ -56,10 +53,7 @@ export async function createBookAction(
   const { error } = await supabase.from("books").insert({
     slug,
     title: parsed.data.title,
-    author: parsed.data.author,
-    category: parsed.data.category,
     description: parsed.data.description || "",
-    condition: parsed.data.condition,
     stock_total: parsed.data.stockTotal,
     stock_available: parsed.data.stockTotal,
     image_path: parsed.data.imagePath || null,
@@ -97,10 +91,7 @@ export async function updateBookAction(
     .from("books")
     .update({
       title: parsed.data.title,
-      author: parsed.data.author,
-      category: parsed.data.category,
       description: parsed.data.description || "",
-      condition: parsed.data.condition,
       stock_total: parsed.data.stockTotal,
       image_path: parsed.data.imagePath || null,
     })

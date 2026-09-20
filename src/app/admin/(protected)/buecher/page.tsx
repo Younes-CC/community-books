@@ -34,9 +34,6 @@ export default async function AdminBooksPage() {
               >
                 {book.title}
               </Link>
-              <p className="truncate text-sm text-ink-muted">
-                {book.author} · {book.category}
-              </p>
             </div>
 
             <div className="hidden shrink-0 text-sm text-ink-muted sm:block">

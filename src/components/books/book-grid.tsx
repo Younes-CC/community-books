@@ -6,9 +6,7 @@ export function BookGrid({ books }: { books: PublicBook[] }) {
     return (
       <div className="border border-dashed border-line-strong px-6 py-16 text-center">
         <p className="font-serif text-lg text-ink">Keine Bücher gefunden.</p>
-        <p className="mt-1 text-sm text-ink-muted">
-          Versuch es mit einer anderen Suche oder Kategorie.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">Versuch es mit einer anderen Suche.</p>
       </div>
     );
   }
