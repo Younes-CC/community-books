@@ -9,18 +9,46 @@ export function BookRowActions({ bookId, isActive }: { bookId: string; isActive:
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  function runToggle() {
+    setError(null);
+    startTransition(async () => {
+      try {
+        const result = await setBookActiveAction(bookId, !isActive);
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        router.refresh();
+      } catch {
+        setError("Aktion fehlgeschlagen. Bitte erneut versuchen.");
+      }
+    });
+  }
+
+  function runDelete() {
+    if (!confirm("Dieses Buch wirklich löschen?")) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        const result = await deleteBookAction(bookId);
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        router.refresh();
+      } catch {
+        setError("Aktion fehlgeschlagen. Bitte erneut versuchen.");
+      }
+    });
+  }
+
   return (
     <div>
       <div className="flex items-center justify-end gap-3 text-sm">
         <button
           type="button"
           disabled={isPending}
-          onClick={() =>
-            startTransition(async () => {
-              await setBookActiveAction(bookId, !isActive);
-              router.refresh();
-            })
-          }
+          onClick={runToggle}
           className="text-ink-muted hover:text-ink"
         >
           {isActive ? "Deaktivieren" : "Aktivieren"}
@@ -28,17 +56,7 @@ export function BookRowActions({ bookId, isActive }: { bookId: string; isActive:
         <button
           type="button"
           disabled={isPending}
-          onClick={() => {
-            if (!confirm("Dieses Buch wirklich löschen?")) return;
-            startTransition(async () => {
-              const result = await deleteBookAction(bookId);
-              if (!result.ok) {
-                setError(result.message);
-                return;
-              }
-              router.refresh();
-            });
-          }}
+          onClick={runDelete}
           className="text-brick hover:opacity-80"
         >
           Löschen

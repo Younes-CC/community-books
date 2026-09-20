@@ -119,14 +119,21 @@ export async function updateBookAction(
   redirect("/admin/buecher");
 }
 
-export async function setBookActiveAction(bookId: string, isActive: boolean) {
+export async function setBookActiveAction(
+  bookId: string,
+  isActive: boolean,
+): Promise<{ ok: true } | { ok: false; message: string }> {
   await requireAdmin();
   const supabase = await createClient();
   const { error } = await supabase.from("books").update({ is_active: isActive }).eq("id", bookId);
-  if (error) throw error;
+
+  if (error) {
+    return { ok: false, message: "Status konnte nicht geändert werden." };
+  }
 
   revalidatePath("/admin/buecher");
   revalidatePath("/buecher");
+  return { ok: true };
 }
 
 export async function deleteBookAction(

@@ -48,7 +48,13 @@ export function OrderActions({
   function run(action: OrderAction) {
     setError(null);
     startTransition(async () => {
-      const result = await setOrderStatusAction(orderId, action);
+      let result;
+      try {
+        result = await setOrderStatusAction(orderId, action);
+      } catch {
+        setError("Aktion fehlgeschlagen. Bitte erneut versuchen.");
+        return;
+      }
       if (!result.ok) {
         setError(result.message);
         return;
