@@ -10,7 +10,16 @@ export type OrderAction =
   | "mark_shipped"
   | "mark_ready_for_pickup"
   | "mark_completed"
+  | "extend_reservation"
   | "cancel";
+
+function revalidateOrders(orderId?: string) {
+  revalidatePath("/admin/bestellungen");
+  if (orderId) revalidatePath(`/admin/bestellungen/${orderId}`);
+  revalidatePath("/admin");
+  revalidatePath("/admin/buecher");
+  revalidatePath("/buecher");
+}
 
 export async function setOrderStatusAction(
   orderId: string,
@@ -28,9 +37,22 @@ export async function setOrderStatusAction(
     return { ok: false, message: "Aktion konnte nicht ausgeführt werden." };
   }
 
-  revalidatePath("/admin/bestellungen");
-  revalidatePath(`/admin/bestellungen/${orderId}`);
-  revalidatePath("/admin");
-  revalidatePath("/buecher");
+  revalidateOrders(orderId);
+  return { ok: true };
+}
+
+export async function deleteOrderAction(
+  orderId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("admin_delete_order", { p_order_id: orderId });
+
+  if (error) {
+    return { ok: false, message: "Reservierung konnte nicht gelöscht werden." };
+  }
+
+  revalidateOrders();
   return { ok: true };
 }

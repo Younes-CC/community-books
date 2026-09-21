@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAdminOrders } from "@/lib/data/admin/orders";
 import { OrderFilterTabs } from "@/components/admin/order-filter-tabs";
+import { OrderRowActions } from "@/components/admin/order-row-actions";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/components/admin/status-badge";
 import { FULFILLMENT_LABELS, type OrderStatus, type PaymentStatus } from "@/lib/constants";
 import { formatDateShort, formatPrice } from "@/lib/format";
@@ -25,7 +26,7 @@ export default async function AdminOrdersPage({
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-md border border-line">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className="w-full min-w-[960px] text-sm">
           <thead>
             <tr className="border-b border-line bg-paper-alt text-left text-xs uppercase tracking-wide text-ink-faint">
               <th className="px-4 py-3 font-medium">Bestellnummer</th>
@@ -36,6 +37,7 @@ export default async function AdminOrdersPage({
               <th className="px-4 py-3 font-medium">Zahlung</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium text-right">Betrag</th>
+              <th className="px-4 py-3 font-medium text-right">Aktionen</th>
             </tr>
           </thead>
           <tbody>
@@ -64,6 +66,15 @@ export default async function AdminOrdersPage({
                   <OrderStatusBadge status={order.order_status as OrderStatus} />
                 </td>
                 <td className="px-4 py-3 text-right text-ink-muted">{formatPrice(order.total)}</td>
+                <td className="px-4 py-3">
+                  <OrderRowActions
+                    orderId={order.id}
+                    orderNumber={order.order_number}
+                    orderStatus={order.order_status as OrderStatus}
+                    paymentStatus={order.payment_status}
+                    fulfillmentType={order.fulfillment_type}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

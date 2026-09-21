@@ -2,26 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setOrderStatusAction, type OrderAction } from "@/lib/actions/admin/orders";
+import {
+  setOrderStatusAction,
+  deleteOrderAction,
+  type OrderAction,
+} from "@/lib/actions/admin/orders";
 import { Button } from "@/components/ui/button";
 import type { OrderStatus } from "@/lib/constants";
-
-const ACTION_LABELS: Record<OrderAction, string> = {
-  confirm_payment: "Zahlung bestätigen",
-  mark_packing: "Als verpackt markieren",
-  mark_shipped: "Als versendet markieren",
-  mark_ready_for_pickup: "Abholbereit",
-  mark_completed: "Abgeholt / Abgeschlossen",
-  cancel: "Stornieren",
-};
+import {
+  ACTION_LABELS,
+  availableActions,
+  canCancel,
+  deleteConfirmMessage,
+} from "@/lib/order-workflow";
 
 export function OrderActions({
   orderId,
+  orderNumber,
   orderStatus,
   paymentStatus,
   fulfillmentType,
 }: {
   orderId: string;
+  orderNumber: string;
   orderStatus: OrderStatus;
   paymentStatus: string;
   fulfillmentType: string;
@@ -30,20 +33,7 @@ export function OrderActions({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const actions: OrderAction[] = [];
-
-  if (paymentStatus === "pending") actions.push("confirm_payment");
-  if (["paid", "reserved"].includes(orderStatus)) actions.push("mark_packing");
-  if (fulfillmentType === "shipping" && ["packing", "paid"].includes(orderStatus)) {
-    actions.push("mark_shipped");
-  }
-  if (fulfillmentType === "pickup" && orderStatus === "reserved") {
-    actions.push("mark_ready_for_pickup");
-  }
-  if (["shipped", "ready_for_pickup", "reserved", "paid"].includes(orderStatus)) {
-    actions.push("mark_completed");
-  }
-  const canCancel = !["cancelled", "completed", "expired"].includes(orderStatus);
+  const actions = availableActions({ orderStatus, paymentStatus, fulfillmentType });
 
   function run(action: OrderAction) {
     setError(null);
@@ -63,6 +53,26 @@ export function OrderActions({
     });
   }
 
+  function remove() {
+    if (!confirm(deleteConfirmMessage(orderNumber, orderStatus))) return;
+    setError(null);
+    startTransition(async () => {
+      let result;
+      try {
+        result = await deleteOrderAction(orderId);
+      } catch {
+        setError("Löschen fehlgeschlagen. Bitte erneut versuchen.");
+        return;
+      }
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      router.push("/admin/bestellungen");
+      router.refresh();
+    });
+  }
+
   return (
     <div>
       <div className="flex flex-wrap gap-2">
@@ -70,7 +80,7 @@ export function OrderActions({
           <Button
             key={action}
             type="button"
-            variant="primary"
+            variant={action === "extend_reservation" ? "secondary" : "primary"}
             size="sm"
             disabled={isPending}
             onClick={() => run(action)}
@@ -78,14 +88,14 @@ export function OrderActions({
             {ACTION_LABELS[action]}
           </Button>
         ))}
-        {canCancel && (
+        {canCancel(orderStatus) && (
           <Button
             type="button"
-            variant="danger"
+            variant="secondary"
             size="sm"
             disabled={isPending}
             onClick={() => {
-              if (confirm("Diese Bestellung wirklich stornieren? Der Bestand wird zurückgegeben.")) {
+              if (confirm("Diese Reservierung wirklich stornieren? Der Bestand wird zurückgegeben.")) {
                 run("cancel");
               }
             }}
@@ -93,6 +103,9 @@ export function OrderActions({
             {ACTION_LABELS.cancel}
           </Button>
         )}
+        <Button type="button" variant="danger" size="sm" disabled={isPending} onClick={remove}>
+          Löschen
+        </Button>
       </div>
       {error && <p className="mt-3 text-sm text-brick">{error}</p>}
     </div>

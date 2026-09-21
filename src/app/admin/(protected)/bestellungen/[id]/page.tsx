@@ -31,6 +31,7 @@ export default async function AdminOrderDetailPage({
       <div className="mt-6 rounded-md border border-line p-5">
         <OrderActions
           orderId={order.id}
+          orderNumber={order.order_number}
           orderStatus={order.order_status as OrderStatus}
           paymentStatus={order.payment_status}
           fulfillmentType={order.fulfillment_type}
