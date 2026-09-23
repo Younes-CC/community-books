@@ -37,12 +37,14 @@ export default async function AdminOrdersPage({
               <th className="px-4 py-3 font-medium">Zahlung</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium text-right">Betrag</th>
-              <th className="px-4 py-3 font-medium text-right">Aktionen</th>
+              <th className="sticky right-0 bg-paper-alt px-4 py-3 text-right font-medium shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)]">
+                Aktionen
+              </th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id} className="border-b border-line last:border-0 hover:bg-paper-alt">
+              <tr key={order.id} className="group border-b border-line last:border-0 hover:bg-paper-alt">
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/bestellungen/${order.id}`}
@@ -66,7 +68,7 @@ export default async function AdminOrdersPage({
                   <OrderStatusBadge status={order.order_status as OrderStatus} />
                 </td>
                 <td className="px-4 py-3 text-right text-ink-muted">{formatPrice(order.total)}</td>
-                <td className="px-4 py-3">
+                <td className="sticky right-0 bg-paper px-4 py-3 shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)] group-hover:bg-paper-alt">
                   <OrderRowActions
                     orderId={order.id}
                     orderNumber={order.order_number}
