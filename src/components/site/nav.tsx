@@ -1,31 +1,40 @@
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
 import { MobileNav } from "@/components/site/mobile-nav";
+import { CartLink } from "@/components/cart/cart-link";
+
+const LINKS = [
+  { href: "/buecher", label: "Bücher" },
+  { href: "/ueber", label: "Über die Aktion" },
+  { href: "/faq", label: "FAQ" },
+];
 
 export function SiteNav() {
   return (
-    <header className="relative z-20 border-b border-line bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <header className="sticky top-0 z-30 border-b border-line bg-paper pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
         <Link
           href="/"
-          className="font-serif text-[1.05rem] font-medium uppercase tracking-[0.18em] text-ink"
+          className="font-serif text-[0.95rem] font-medium uppercase tracking-[0.16em] text-ink sm:text-[1.05rem] sm:tracking-[0.18em]"
         >
           {SITE_NAME}
         </Link>
 
-        <nav className="hidden items-center gap-8 sm:flex">
-          <Link href="/buecher" className="text-sm text-ink-muted transition-colors hover:text-ink">
-            Bücher
-          </Link>
-          <Link href="/ueber" className="text-sm text-ink-muted transition-colors hover:text-ink">
-            Über die Aktion
-          </Link>
-          <Link href="/faq" className="text-sm text-ink-muted transition-colors hover:text-ink">
-            FAQ
-          </Link>
-        </nav>
-
-        <MobileNav />
+        <div className="flex items-center gap-1 sm:gap-6">
+          <nav className="hidden items-center gap-7 sm:flex" aria-label="Hauptnavigation">
+            {LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm text-ink-muted transition-colors hover:text-ink"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <CartLink />
+          <MobileNav links={LINKS} />
+        </div>
       </div>
     </header>
   );

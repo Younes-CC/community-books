@@ -12,32 +12,31 @@ export default async function AdminBooksPage() {
   const books = await getAdminBooks();
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-4xl">
+      <div className="flex items-center justify-between gap-3">
         <h1 className="font-serif text-2xl text-ink">Bücher</h1>
         <LinkButton href="/admin/buecher/neu" size="sm">
           Buch hinzufügen
         </LinkButton>
       </div>
 
-      <div className="mt-6 divide-y divide-line rounded-md border border-line">
+      <ul className="mt-6 divide-y divide-line rounded-md border border-line">
         {books.map((book) => (
-          <div key={book.id} className="flex items-center gap-4 px-4 py-3">
+          <li key={book.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
             <div className="w-12 shrink-0">
               <BookCover imagePath={book.image_path} title={book.title} sizes="48px" />
             </div>
 
-            <div className="min-w-0 flex-1">
-              <Link
-                href={`/admin/buecher/${book.id}`}
-                className="block truncate font-medium text-ink hover:text-forest"
-              >
+            <div className="min-w-0 flex-1 basis-40">
+              <Link href={`/admin/buecher/${book.id}`} className="line-clamp-2 font-medium text-ink hover:text-forest">
                 {book.title}
               </Link>
-            </div>
-
-            <div className="hidden shrink-0 text-sm text-ink-muted sm:block">
-              {book.stock_available} / {book.stock_total} verfügbar
+              <p className="mt-0.5 text-sm text-ink-muted">
+                {book.stock_available} / {book.stock_total} verfügbar
+                {!(book.width_mm && book.height_mm && book.thickness_mm) && (
+                  <span className="ml-2 text-xs text-ink-faint">· Maße fehlen</span>
+                )}
+              </p>
             </div>
 
             <span
@@ -49,18 +48,16 @@ export default async function AdminBooksPage() {
               {book.is_active ? "Aktiv" : "Deaktiviert"}
             </span>
 
-            <div className="w-32 shrink-0">
+            <div className="ml-auto shrink-0">
               <BookRowActions bookId={book.id} isActive={book.is_active} />
             </div>
-          </div>
+          </li>
         ))}
 
         {books.length === 0 && (
-          <p className="px-4 py-10 text-center text-sm text-ink-muted">
-            Noch keine Bücher vorhanden.
-          </p>
+          <li className="px-4 py-10 text-center text-sm text-ink-muted">Noch keine Bücher vorhanden.</li>
         )}
-      </div>
+      </ul>
     </div>
   );
 }

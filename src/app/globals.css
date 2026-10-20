@@ -57,6 +57,30 @@ body {
   color: var(--paper);
 }
 
+/* iOS Safari zooms into any focused field below 16px — keep fields at 16px on phones. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* The questionnaire overlay is rendered on the server; this hides it before first paint
+   for returning visitors (set by a tiny inline script that reads localStorage). */
+html[data-onboarding="seen"] [data-onboarding-overlay] {
+  display: none;
+}
+
 .motif-divider {
   background-image: radial-gradient(circle, var(--line-strong) 1px, transparent 1.4px);
   background-size: 14px 14px;

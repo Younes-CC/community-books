@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
+import * as z from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { bookSchema } from "@/lib/validation/book";
 import { slugify } from "@/lib/format";
@@ -17,7 +18,26 @@ function parseBookForm(formData: FormData) {
     description: formData.get("description"),
     stockTotal: formData.get("stockTotal"),
     imagePath: formData.get("imagePath"),
+    topics: formData.getAll("topics").map(String),
+    levels: formData.getAll("levels").map(String),
+    readingLength: String(formData.get("readingLength") ?? ""),
+    widthMm: String(formData.get("widthMm") ?? ""),
+    heightMm: String(formData.get("heightMm") ?? ""),
+    thicknessMm: String(formData.get("thicknessMm") ?? ""),
+    weightG: String(formData.get("weightG") ?? ""),
   });
+}
+
+function bookFields(d: z.infer<typeof bookSchema>) {
+  return {
+    topics: d.topics,
+    levels: d.levels,
+    reading_length: d.readingLength || null,
+    width_mm: d.widthMm,
+    height_mm: d.heightMm,
+    thickness_mm: d.thicknessMm,
+    weight_g: d.weightG,
+  };
 }
 
 async function uniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, title: string) {
@@ -43,7 +63,7 @@ export async function createBookAction(
     return {
       status: "error",
       message: "Bitte prüfe deine Angaben.",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
     };
   }
 
@@ -57,6 +77,7 @@ export async function createBookAction(
     stock_total: parsed.data.stockTotal,
     stock_available: parsed.data.stockTotal,
     image_path: parsed.data.imagePath || null,
+    ...bookFields(parsed.data),
   });
 
   if (error) {
@@ -82,7 +103,7 @@ export async function updateBookAction(
     return {
       status: "error",
       message: "Bitte prüfe deine Angaben.",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
     };
   }
 
@@ -94,6 +115,7 @@ export async function updateBookAction(
       description: parsed.data.description || "",
       stock_total: parsed.data.stockTotal,
       image_path: parsed.data.imagePath || null,
+      ...bookFields(parsed.data),
     })
     .eq("id", bookId);
 

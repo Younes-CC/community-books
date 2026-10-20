@@ -1,25 +1,35 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { BookRow } from "@/lib/database.types";
 
-export type AdminBook = {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  image_path: string | null;
-  stock_total: number;
-  stock_available: number;
-  is_active: boolean;
-  created_at: string;
-};
+export type AdminBook = Pick<
+  BookRow,
+  | "id"
+  | "slug"
+  | "title"
+  | "description"
+  | "image_path"
+  | "stock_total"
+  | "stock_available"
+  | "is_active"
+  | "created_at"
+  | "topics"
+  | "levels"
+  | "reading_length"
+  | "width_mm"
+  | "height_mm"
+  | "thickness_mm"
+  | "weight_g"
+>;
+
+const COLUMNS =
+  "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at, topics, levels, reading_length, width_mm, height_mm, thickness_mm, weight_g";
 
 export async function getAdminBooks(): Promise<AdminBook[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("books")
-    .select(
-      "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at",
-    )
+    .select(COLUMNS)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -28,13 +38,7 @@ export async function getAdminBooks(): Promise<AdminBook[]> {
 
 export async function getAdminBookById(id: string): Promise<AdminBook | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("books")
-    .select(
-      "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at",
-    )
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await supabase.from("books").select(COLUMNS).eq("id", id).maybeSingle();
 
   if (error) throw error;
   return data;

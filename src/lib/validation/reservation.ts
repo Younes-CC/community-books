@@ -1,25 +1,28 @@
 import * as z from "zod";
+import { MAX_BOOKS_PER_PERSON } from "@/lib/constants";
 
 const requiredText = (label: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, `${label} wird benötigt.`)
-    .max(120, `${label} ist zu lang.`);
+  z.string().trim().min(1, `${label} wird benötigt.`).max(120, `${label} ist zu lang.`);
+
+const optionalText = (max: number) => z.string().trim().max(max).optional().or(z.literal(""));
 
 export const reservationSchema = z
   .object({
-    bookId: z.uuid("Ungültiges Buch."),
+    bookIds: z
+      .array(z.uuid("Ungültiges Buch."))
+      .min(1, "Dein Warenkorb ist leer.")
+      .max(MAX_BOOKS_PER_PERSON, `Maximal ${MAX_BOOKS_PER_PERSON} Bücher pro Person.`)
+      .refine((ids) => new Set(ids).size === ids.length, "Jedes Buch kann nur einmal ausgewählt werden."),
     fulfillmentType: z.enum(["shipping", "pickup"]),
     firstName: requiredText("Vorname"),
     lastName: requiredText("Nachname"),
-    email: z.email("Bitte gib eine gültige E-Mail-Adresse ein."),
-    socialUsername: z.string().trim().max(60).optional().or(z.literal("")),
-    street: z.string().trim().max(120).optional().or(z.literal("")),
-    houseNumber: z.string().trim().max(20).optional().or(z.literal("")),
-    postalCode: z.string().trim().max(20).optional().or(z.literal("")),
-    city: z.string().trim().max(80).optional().or(z.literal("")),
-    country: z.string().trim().max(60).optional().or(z.literal("")),
+    email: z.email("Bitte gib eine gültige E-Mail-Adresse ein.").max(200),
+    socialUsername: optionalText(60),
+    street: optionalText(120),
+    houseNumber: optionalText(20),
+    postalCode: optionalText(20),
+    city: optionalText(80),
+    country: optionalText(60),
   })
   .superRefine((data, ctx) => {
     if (data.fulfillmentType !== "shipping") return;

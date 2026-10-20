@@ -1,26 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
-const LINKS = [
-  { href: "/buecher", label: "Bücher" },
-  { href: "/ueber", label: "Über die Aktion" },
-  { href: "/faq", label: "FAQ" },
-];
+export function MobileNav({ links }: { links: { href: string; label: string }[] }) {
+  // the menu is "open for" one pathname, so navigating anywhere closes it without an effect
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const pathname = usePathname();
+  const open = openPath === pathname;
+  const toggle = () => setOpenPath(open ? null : pathname);
 
-export function MobileNav() {
-  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenPath(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <div className="sm:hidden">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         aria-expanded={open}
-        aria-label="Menü öffnen"
-        className="relative flex h-9 w-9 flex-col items-center justify-center gap-1.5"
+        aria-controls="mobile-menu"
+        aria-label={open ? "Menü schließen" : "Menü öffnen"}
+        className="relative flex h-11 w-11 flex-col items-center justify-center gap-[6px] rounded-full hover:bg-paper-alt"
       >
         <span
           className={cn(
@@ -37,14 +44,16 @@ export function MobileNav() {
       </button>
 
       {open && (
-        <div className="absolute inset-x-0 top-full border-b border-line bg-paper px-6 pb-6 pt-2 shadow-sm">
-          <nav className="flex flex-col gap-1">
-            {LINKS.map((link) => (
+        <div
+          id="mobile-menu"
+          className="absolute inset-x-0 top-full border-b border-line bg-paper px-5 pb-5 pt-1"
+        >
+          <nav className="flex flex-col" aria-label="Mobile Navigation">
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-2 py-3 text-base text-ink hover:bg-paper-alt"
+                className="flex min-h-12 items-center border-b border-line/60 text-base text-ink last:border-b-0"
               >
                 {link.label}
               </Link>

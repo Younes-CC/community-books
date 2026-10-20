@@ -1,74 +1,98 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import * as z from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getBooksByIds } from "@/lib/data/books";
 import { reservationSchema } from "@/lib/validation/reservation";
 import type { FulfillmentType } from "@/lib/constants";
 
 export type ReservationState =
   | { status: "idle" }
-  | { status: "error"; message: string; fieldErrors?: Record<string, string[]> }
+  | { status: "error"; message: string; fieldErrors?: Record<string, string[]>; refreshCart?: boolean }
   | {
       status: "success";
       orderNumber: string;
-      orderStatus: string;
-      paymentStatus: string;
-      shippingPrice: number;
-      total: number;
-      reservationExpiresAt: string | null;
       fulfillmentType: FulfillmentType;
+      titles: string[];
     };
 
-const DB_ERROR_MESSAGES: Record<string, string> = {
-  invalid_fulfillment_type: "Bitte wähle Versand oder Abholung.",
-  first_name_required: "Bitte gib deinen Vornamen an.",
-  last_name_required: "Bitte gib deinen Nachnamen an.",
-  invalid_email: "Bitte gib eine gültige E-Mail-Adresse ein.",
-  address_required: "Bitte fülle alle Adressfelder für den Versand aus.",
-  book_not_found: "Dieses Buch wurde nicht gefunden.",
-  book_not_available: "Dieses Buch ist aktuell nicht verfügbar.",
-  out_of_stock: "Dieses Buch ist leider vergriffen.",
+const DB_ERROR_MESSAGES: Record<string, { message: string; refreshCart?: boolean }> = {
+  invalid_fulfillment_type: { message: "Bitte wähle Hermes-Versand oder Abholung." },
+  cart_empty: { message: "Dein Warenkorb ist leer." },
+  too_many_books: {
+    message:
+      "Pro Person sind maximal drei Bücher vorgesehen. Bitte entferne ein Buch aus deinem Warenkorb.",
+  },
+  duplicate_book: { message: "Jedes Buch kann nur einmal ausgewählt werden." },
+  limit_exceeded: {
+    message:
+      "Für dich sind bereits Bücher reserviert. Damit möglichst viele Menschen von dieser Aktion profitieren können, sind maximal drei Bücher pro Person vorgesehen.",
+  },
+  already_has_book: { message: "Eines dieser Bücher ist für dich bereits reserviert." },
+  first_name_required: { message: "Bitte gib deinen Vornamen an." },
+  last_name_required: { message: "Bitte gib deinen Nachnamen an." },
+  invalid_email: { message: "Bitte gib eine gültige E-Mail-Adresse ein." },
+  invalid_input: { message: "Bitte prüfe deine Angaben (ein Feld ist zu lang)." },
+  address_required: { message: "Bitte fülle alle Adressfelder für den Versand aus." },
+  book_not_found: { message: "Ein Buch wurde nicht gefunden. Bitte prüfe deinen Warenkorb.", refreshCart: true },
+  book_not_available: {
+    message: "Ein Buch ist aktuell nicht verfügbar. Bitte prüfe deinen Warenkorb.",
+    refreshCart: true,
+  },
+  out_of_stock: {
+    message: "Mindestens eines der Bücher ist leider nicht mehr verfügbar. Bitte prüfe deinen Warenkorb.",
+    refreshCart: true,
+  },
 };
 
-function mapDbError(message: string): string {
+function mapDbError(message: string): { message: string; refreshCart?: boolean } {
   for (const [code, friendly] of Object.entries(DB_ERROR_MESSAGES)) {
     if (message.includes(code)) return friendly;
   }
-  return "Deine Reservierung konnte nicht erstellt werden. Bitte versuche es erneut.";
+  return { message: "Deine Reservierung konnte nicht erstellt werden. Bitte versuche es erneut." };
 }
+
+const text = (formData: FormData, key: string) => String(formData.get(key) ?? "");
 
 export async function createReservationAction(
   _prevState: ReservationState,
   formData: FormData,
 ): Promise<ReservationState> {
-  const raw = {
-    bookId: String(formData.get("bookId") ?? ""),
-    fulfillmentType: String(formData.get("fulfillmentType") ?? ""),
-    firstName: String(formData.get("firstName") ?? ""),
-    lastName: String(formData.get("lastName") ?? ""),
-    email: String(formData.get("email") ?? ""),
-    socialUsername: String(formData.get("socialUsername") ?? ""),
-    street: String(formData.get("street") ?? ""),
-    houseNumber: String(formData.get("houseNumber") ?? ""),
-    postalCode: String(formData.get("postalCode") ?? ""),
-    city: String(formData.get("city") ?? ""),
-    country: String(formData.get("country") ?? ""),
-  };
+  // honeypot: real visitors never see or fill this field
+  if (text(formData, "website").trim() !== "") {
+    return { status: "error", message: "Deine Reservierung konnte nicht erstellt werden." };
+  }
 
-  const parsed = reservationSchema.safeParse(raw);
+  const parsed = reservationSchema.safeParse({
+    bookIds: formData.getAll("bookId").map(String),
+    fulfillmentType: text(formData, "fulfillmentType"),
+    firstName: text(formData, "firstName"),
+    lastName: text(formData, "lastName"),
+    email: text(formData, "email"),
+    socialUsername: text(formData, "socialUsername"),
+    street: text(formData, "street"),
+    houseNumber: text(formData, "houseNumber"),
+    postalCode: text(formData, "postalCode"),
+    city: text(formData, "city"),
+    country: text(formData, "country"),
+  });
+
   if (!parsed.success) {
+    const flat = z.flattenError(parsed.error);
+    const first = flat.fieldErrors.bookIds?.[0] ?? flat.formErrors[0];
     return {
       status: "error",
-      message: "Bitte prüfe deine Angaben.",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      message: first ?? "Bitte prüfe deine Angaben.",
+      fieldErrors: flat.fieldErrors as Record<string, string[]>,
     };
   }
 
   const data = parsed.data;
   const supabase = await createClient();
 
-  const { data: rows, error } = await supabase.rpc("create_reservation", {
-    p_book_id: data.bookId,
+  const { data: rows, error } = await supabase.rpc("create_cart_reservation", {
+    p_book_ids: data.bookIds,
     p_fulfillment_type: data.fulfillmentType,
     p_first_name: data.firstName,
     p_last_name: data.lastName,
@@ -82,7 +106,7 @@ export async function createReservationAction(
   });
 
   if (error) {
-    return { status: "error", message: mapDbError(error.message) };
+    return { status: "error", ...mapDbError(error.message) };
   }
 
   const result = rows?.[0];
@@ -91,15 +115,34 @@ export async function createReservationAction(
   }
 
   revalidatePath("/buecher");
+  revalidatePath("/");
 
   return {
     status: "success",
-    orderNumber: result.order_number,
-    orderStatus: result.order_status,
-    paymentStatus: result.payment_status,
-    shippingPrice: result.shipping_price,
-    total: result.total,
-    reservationExpiresAt: result.reservation_expires_at,
-    fulfillmentType: data.fulfillmentType as FulfillmentType,
+    orderNumber: result.out_order_number,
+    fulfillmentType: data.fulfillmentType,
+    titles: result.out_titles,
   };
+}
+
+export type CartBookInfo = {
+  id: string;
+  slug: string;
+  title: string;
+  image_path: string | null;
+  available: boolean;
+};
+
+// Re-checks what is still reservable for the books in a visitor's cart (public data only).
+export async function resolveCartBooksAction(ids: string[]): Promise<CartBookInfo[]> {
+  const parsed = z.array(z.uuid()).max(10).safeParse(ids);
+  if (!parsed.success || parsed.data.length === 0) return [];
+  const books = await getBooksByIds(parsed.data);
+  return books.map((b) => ({
+    id: b.id,
+    slug: b.slug,
+    title: b.title,
+    image_path: b.image_path,
+    available: b.is_active && b.stock_available > 0,
+  }));
 }
