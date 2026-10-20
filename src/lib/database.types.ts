@@ -291,6 +291,7 @@ export type Database = {
         }[]
       }
       expire_expired_reservations: { Args: never; Returns: number }
+      get_public_settings: { Args: never; Returns: Json }
       generate_order_number: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
     }
