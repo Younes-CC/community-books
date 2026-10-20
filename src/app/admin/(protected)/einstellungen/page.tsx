@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { getPublicSettings } from "@/lib/data/settings";
+import { getAdminSettings } from "@/lib/data/settings";
 import { SettingsForm } from "@/components/admin/settings-form";
 
 export const metadata: Metadata = { title: "Einstellungen — Admin" };
 
 export default async function AdminSettingsPage() {
-  const settings = await getPublicSettings();
+  const settings = await getAdminSettings();
 
   return (
     <div>
