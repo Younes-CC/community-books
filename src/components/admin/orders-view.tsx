@@ -83,7 +83,7 @@ export function OrdersView({ orders, admins, parcel, now }: Props) {
                 <OrderStatusBadge status={o.status} />
               </div>
 
-              <p className="mt-3 text-sm text-ink">{o.name}</p>
+              <p className="mt-3 break-words text-sm text-ink">{o.name}</p>
               <p className="truncate text-xs text-ink-faint">{o.email}</p>
 
               <p className="mt-2 line-clamp-2 text-sm text-ink-muted">
@@ -102,7 +102,7 @@ export function OrdersView({ orders, admins, parcel, now }: Props) {
                 <div className="flex items-center gap-2">
                   <AssigneeSelect orderId={o.id} value={o.assignedTo} admins={admins} className="min-w-0 flex-1" />
                 </div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <OrderRowActions
                     orderId={o.id}
                     orderNumber={o.orderNumber}
