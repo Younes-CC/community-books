@@ -143,7 +143,7 @@ export function OrderEmailPanel({
         )}
         {!blocked && (
           <a
-            href={gmailHref(draft)}
+            href={gmailHref(draft, senderEmail)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpened(true)}

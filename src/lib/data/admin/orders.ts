@@ -48,7 +48,7 @@ export async function getAdminOrders(
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, first_name, last_name, email, fulfillment_type, order_status, assigned_to, internal_due_at, qr_deadline_at, pickup_deadline_at, parcel_class_override, order_items(book_id, title_snapshot, books(width_mm, height_mm, thickness_mm, weight_g))",
+      "id, order_number, created_at, first_name, last_name, email, fulfillment_type, order_status, assigned_to, internal_due_at, qr_deadline_at, pickup_deadline_at, parcel_class_override, order_items(book_id, title_snapshot, books(width_mm, height_mm, thickness_mm, weight_g, dimensions_check))",
     )
     .order("created_at", { ascending: false })
     .limit(300);
@@ -98,6 +98,7 @@ export async function getAdminOrders(
       height_mm: i.books?.height_mm ?? null,
       thickness_mm: i.books?.thickness_mm ?? null,
       weight_g: i.books?.weight_g ?? null,
+      dimensions_check: i.books?.dimensions_check ?? false,
     })),
     internalDueAt: o.internal_due_at,
     qrDeadlineAt: o.qr_deadline_at,
@@ -123,7 +124,7 @@ export async function getAdminOrderDetail(id: string): Promise<AdminOrderDetail 
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, order_items(id, book_id, title_snapshot, books(image_path, width_mm, height_mm, thickness_mm, weight_g))",
+      "*, order_items(id, book_id, title_snapshot, books(image_path, width_mm, height_mm, thickness_mm, weight_g, dimensions_check))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -152,6 +153,7 @@ export async function getAdminOrderDetail(id: string): Promise<AdminOrderDetail 
         height_mm: i.books?.height_mm ?? null,
         thickness_mm: i.books?.thickness_mm ?? null,
         weight_g: i.books?.weight_g ?? null,
+        dimensions_check: i.books?.dimensions_check ?? false,
       },
     })),
     history: history ?? [],

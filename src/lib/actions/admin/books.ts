@@ -25,6 +25,9 @@ function parseBookForm(formData: FormData) {
     heightMm: String(formData.get("heightMm") ?? ""),
     thicknessMm: String(formData.get("thicknessMm") ?? ""),
     weightG: String(formData.get("weightG") ?? ""),
+    dimensionsCheck: formData.get("dimensionsCheck") === "on",
+    dimensionsNote: String(formData.get("dimensionsNote") ?? ""),
+    arabicTextOnly: formData.get("arabicTextOnly") === "on",
   });
 }
 
@@ -37,6 +40,9 @@ function bookFields(d: z.infer<typeof bookSchema>) {
     height_mm: d.heightMm,
     thickness_mm: d.thicknessMm,
     weight_g: d.weightG,
+    dimensions_check: d.dimensionsCheck,
+    dimensions_note: d.dimensionsCheck ? d.dimensionsNote || null : null,
+    arabic_text_only: d.arabicTextOnly,
   };
 }
 

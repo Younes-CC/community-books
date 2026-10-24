@@ -25,6 +25,9 @@ export const bookSchema = z.object({
   heightMm: optionalInt(10, 1000, "Höhe: 10–1000 mm"),
   thicknessMm: optionalInt(1, 500, "Dicke: 1–500 mm"),
   weightG: optionalInt(1, 20000, "Gewicht: 1–20000 g"),
+  dimensionsCheck: z.boolean(),
+  dimensionsNote: z.string().trim().max(300).optional().or(z.literal("")),
+  arabicTextOnly: z.boolean(),
 });
 
 export type BookInput = z.infer<typeof bookSchema>;

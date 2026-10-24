@@ -29,7 +29,9 @@ export function mailtoHref({ to, subject, body }: MailDraft): string {
   return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(crlf)}`;
 }
 
-export function gmailHref({ to, subject, body }: MailDraft): string {
+// `account` pre-selects the Google account (the project mailbox) when several are signed in.
+export function gmailHref({ to, subject, body }: MailDraft, account?: string | null): string {
   const q = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
+  if (account) q.set("authuser", account);
   return `https://mail.google.com/mail/?${q.toString()}`;
 }

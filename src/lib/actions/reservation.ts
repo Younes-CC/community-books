@@ -5,6 +5,7 @@ import * as z from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getBooksByIds } from "@/lib/data/books";
 import { reservationSchema } from "@/lib/validation/reservation";
+import { serverToken, visitorKey } from "@/lib/rate-limit";
 import type { FulfillmentType } from "@/lib/constants";
 
 export type ReservationState =
@@ -53,6 +54,16 @@ function mapDbError(message: string): { message: string; refreshCart?: boolean }
   return { message: "Deine Reservierung konnte nicht erstellt werden. Bitte versuche es erneut." };
 }
 
+// Fast autofill can fill the form within a second or two; scripts post immediately.
+const MIN_FORM_MS = 1500;
+
+const RATE_LIMIT_MESSAGES = {
+  ip_limited:
+    "Von deinem Netzwerk aus wurden in kurzer Zeit sehr viele Reservierungen versucht. Bitte versuche es später erneut.",
+  global_limited:
+    "Gerade gehen sehr viele Reservierungen ein. Bitte versuche es in einigen Minuten erneut — deine Auswahl bleibt im Warenkorb gespeichert.",
+} as const;
+
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "");
 
 export async function createReservationAction(
@@ -62,6 +73,11 @@ export async function createReservationAction(
   // honeypot: real visitors never see or fill this field
   if (text(formData, "website").trim() !== "") {
     return { status: "error", message: "Deine Reservierung konnte nicht erstellt werden." };
+  }
+  // time trap: the form reports how long it was open; a human needs more than a moment
+  const elapsedMs = Number(text(formData, "elapsed"));
+  if (!Number.isFinite(elapsedMs) || elapsedMs < MIN_FORM_MS) {
+    return { status: "error", message: "Das ging etwas schnell. Bitte prüfe deine Angaben und sende das Formular erneut ab." };
   }
 
   const parsed = reservationSchema.safeParse({
@@ -91,6 +107,21 @@ export async function createReservationAction(
   const data = parsed.data;
   const supabase = await createClient();
 
+  // server-side rate limit (keyed, daily-rotating network hash; see lib/rate-limit.ts)
+  const ipHash = await visitorKey();
+  const token = serverToken();
+  const { data: verdict, error: limitError } = await supabase.rpc("rate_limit_hit", {
+    p_token: token,
+    p_ip_hash: ipHash,
+    p_kind: "attempt",
+  });
+  if (limitError) {
+    return { status: "error", message: "Deine Reservierung konnte nicht erstellt werden. Bitte versuche es erneut." };
+  }
+  if (verdict !== "ok") {
+    return { status: "error", message: RATE_LIMIT_MESSAGES[verdict as keyof typeof RATE_LIMIT_MESSAGES] ?? RATE_LIMIT_MESSAGES.global_limited };
+  }
+
   const { data: rows, error } = await supabase.rpc("create_cart_reservation", {
     p_book_ids: data.bookIds,
     p_fulfillment_type: data.fulfillmentType,
@@ -103,6 +134,7 @@ export async function createReservationAction(
     p_postal_code: data.postalCode || "",
     p_city: data.city || "",
     p_country: data.country || "",
+    p_server_token: token,
   });
 
   if (error) {
@@ -113,6 +145,9 @@ export async function createReservationAction(
   if (!result) {
     return { status: "error", message: "Deine Reservierung konnte nicht erstellt werden." };
   }
+
+  // counts towards the per-network daily limit (a failure here must not undo the reservation)
+  await supabase.rpc("rate_limit_hit", { p_token: token, p_ip_hash: ipHash, p_kind: "order" });
 
   revalidatePath("/buecher");
   revalidatePath("/");

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SITE_NAME } from "@/lib/constants";
+import { getPublicSettings } from "@/lib/data/settings";
 
 export const metadata: Metadata = { title: "Datenschutz" };
 
@@ -18,7 +20,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { contactEmail } = await getPublicSettings();
   return (
     <div className="mx-auto max-w-2xl px-5 py-12 sm:px-6 sm:py-16">
       <h1 className="font-serif text-[1.65rem] text-ink [overflow-wrap:anywhere] sm:text-3xl">Datenschutzerklärung</h1>
@@ -33,7 +36,20 @@ export default function PrivacyPage() {
             erreichbar unter:
           </p>
           <p>
-            <Placeholder>[Kontakt-E-Mail-Adresse ergänzen]</Placeholder>
+            {contactEmail ? (
+              <a href={`mailto:${contactEmail}`} className="text-forest underline underline-offset-2">
+                {contactEmail}
+              </a>
+            ) : (
+              <Placeholder>[Kontakt-E-Mail-Adresse ergänzen]</Placeholder>
+            )}
+          </p>
+          <p>
+            Name und ladungsfähige Anschrift des Verantwortlichen findest du im{" "}
+            <Link href="/impressum" className="text-forest underline underline-offset-2">
+              Impressum
+            </Link>
+            .
           </p>
         </Section>
 
@@ -79,7 +95,16 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="5. Fragebogen und Warenkorb">
+        <Section title="5. E-Mail-Kommunikation">
+          <p>
+            Wir schreiben dir von unserem Projekt-Postfach {contactEmail ?? "(Projekt-E-Mail)"}, das über
+            einen E-Mail-Anbieter (Google Mail) betrieben wird. Dort werden deine E-Mail-Adresse, der Inhalt
+            unseres Schriftverkehrs und ggf. der von dir gesendete Paketschein verarbeitet. E-Mails werden
+            aktuell manuell von einem Administrator versendet.
+          </p>
+        </Section>
+
+        <Section title="6. Fragebogen und Warenkorb">
           <p>
             Die Antworten des Buchempfehlungs-Fragebogens werden ausschließlich in deinem Browser
             ausgewertet und weder gespeichert noch an uns übermittelt. In deinem Browser speichern wir lokal
@@ -88,16 +113,22 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="6. Technische Infrastruktur">
+        <Section title="7. Technische Infrastruktur und Schutz vor Missbrauch">
           <p>
             Diese Website nutzt Supabase (Datenbank, Authentifizierung und Dateispeicher) zur Speicherung der
             oben genannten Daten sowie Vercel zum Hosting. Beide Anbieter verarbeiten Daten in unserem
             Auftrag. Zugriff auf die Reservierungsdaten haben ausschließlich die beiden Administratoren des
             Projekts.
           </p>
+          <p>
+            Zum Schutz vor automatisierten Massen-Reservierungen prüft der Server beim Absenden einer
+            Reservierung, wie oft von demselben Netzwerk aus Reservierungen versucht wurden. Dafür wird deine
+            IP-Adresse nicht gespeichert, sondern nur ein täglich wechselnder, nicht rückrechenbarer
+            Kennwert (Hash), der nach spätestens 24 Stunden automatisch gelöscht wird.
+          </p>
         </Section>
 
-        <Section title="7. Speicherdauer und Löschung">
+        <Section title="8. Speicherdauer und Löschung">
           <p>
             Deine Daten werden gespeichert, solange dies zur Abwicklung deiner Reservierung erforderlich ist,
             und anschließend gelöscht bzw. anonymisiert, sofern keine gesetzlichen Aufbewahrungspflichten
@@ -105,11 +136,11 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="8. Deine Rechte">
+        <Section title="9. Deine Rechte">
           <p>
             Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung deiner
-            personenbezogenen Daten sowie das Recht auf Datenübertragbarkeit. Wende dich dazu an die oben
-            genannte E-Mail-Adresse.
+            personenbezogenen Daten sowie das Recht auf Datenübertragbarkeit und auf Beschwerde bei einer
+            Datenschutz-Aufsichtsbehörde. Wende dich dazu an die oben genannte E-Mail-Adresse.
           </p>
         </Section>
       </div>

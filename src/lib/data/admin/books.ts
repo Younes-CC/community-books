@@ -20,10 +20,13 @@ export type AdminBook = Pick<
   | "height_mm"
   | "thickness_mm"
   | "weight_g"
+  | "dimensions_check"
+  | "dimensions_note"
+  | "arabic_text_only"
 >;
 
 const COLUMNS =
-  "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at, topics, levels, reading_length, width_mm, height_mm, thickness_mm, weight_g";
+  "id, slug, title, description, image_path, stock_total, stock_available, is_active, created_at, topics, levels, reading_length, width_mm, height_mm, thickness_mm, weight_g, dimensions_check, dimensions_note, arabic_text_only";
 
 export async function getAdminBooks(): Promise<AdminBook[]> {
   const supabase = await createClient();

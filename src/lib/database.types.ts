@@ -31,8 +31,11 @@ export type AdminRow = {
 };
 
 export type BookRow = {
+  arabic_text_only: boolean;
   created_at: string;
   description: string;
+  dimensions_check: boolean;
+  dimensions_note: string | null;
   height_mm: number | null;
   id: string;
   image_path: string | null;
@@ -135,6 +138,9 @@ export type SettingsRow = {
   processing_time_text: string;
   project_email: string | null;
   qr_deadline_hours: number;
+  rate_limit_attempts_per_hour: number;
+  rate_limit_orders_global_hour: number;
+  rate_limit_orders_per_ip_day: number;
   reservation_duration_hours: number;
   sender_name: string | null;
   shipping_price: number;
@@ -217,6 +223,7 @@ export type Database = {
           p_postal_code: string;
           p_social_username: string;
           p_street: string;
+          p_server_token: string;
         };
         Returns: {
           out_order_id: string;
@@ -226,6 +233,7 @@ export type Database = {
         }[];
       };
       get_public_settings: { Args: never; Returns: Json };
+      rate_limit_hit: { Args: { p_ip_hash: string; p_kind: string; p_token: string }; Returns: string };
       is_admin: { Args: never; Returns: boolean };
       is_owner: { Args: never; Returns: boolean };
     };

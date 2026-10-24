@@ -9,6 +9,7 @@ export type PublicSettings = {
   processingTimeText: string;
   pickupLocation: string;
   qrDeadlineHours: number;
+  contactEmail: string | null;
 };
 
 // The settings table is admin-only (it holds sender/pickup addresses and mail templates);
@@ -23,6 +24,7 @@ export async function getPublicSettings(): Promise<PublicSettings> {
     processing_time_text?: string;
     pickup_public_location?: string;
     qr_deadline_hours?: number;
+    contact_email?: string | null;
   };
   return {
     hermesPrice: Number(row.hermes_price ?? 0),
@@ -30,6 +32,7 @@ export async function getPublicSettings(): Promise<PublicSettings> {
     processingTimeText: row.processing_time_text ?? "7–21 Tage",
     pickupLocation: row.pickup_public_location ?? "Neu-Isenburg",
     qrDeadlineHours: Number(row.qr_deadline_hours ?? 72),
+    contactEmail: row.contact_email ?? null,
   };
 }
 

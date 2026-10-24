@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { ArrowLeft, CircleCheck, MapPin, Truck, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import {
@@ -163,6 +163,7 @@ export function CartCheckout({ hermesPrice, processingTimeText, pickupLocation }
               <input key={i.id} type="hidden" name="bookId" value={i.id} />
             ))}
             <input type="hidden" name="fulfillmentType" value={fulfillment} />
+            <ElapsedField />
             {/* honeypot — hidden from people, tempting for bots */}
             <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
               <label>
@@ -413,4 +414,18 @@ function SuccessPanel({
       </div>
     </div>
   );
+}
+
+// Reports how long the form has been open when it is submitted (the server rejects instant posts).
+function ElapsedField() {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const form = ref.current?.form;
+    if (!form) return;
+    const start = Date.now();
+    const onFormData = (e: FormDataEvent) => e.formData.set("elapsed", String(Date.now() - start));
+    form.addEventListener("formdata", onFormData);
+    return () => form.removeEventListener("formdata", onFormData);
+  }, []);
+  return <input ref={ref} type="hidden" name="elapsed" defaultValue="0" />;
 }

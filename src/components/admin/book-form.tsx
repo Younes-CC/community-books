@@ -78,6 +78,15 @@ export function BookForm({ book }: { book?: AdminBook }) {
             </Check>
           ))}
         </Group>
+        <label className="mt-4 flex min-h-10 items-start gap-3 text-sm text-ink">
+          <input type="checkbox" name="arabicTextOnly" defaultChecked={book?.arabic_text_only} className="mt-0.5 h-4 w-4 accent-forest" />
+          <span>
+            Nur arabischer Text (ohne Übersetzung)
+            <span className="block text-xs text-ink-faint">
+              Wird im Fragebogen nur Lesern mit Interesse am Qur&apos;an und Vertiefungs-Wissensstand vorgeschlagen.
+            </span>
+          </span>
+        </label>
         <div className="mt-4 max-w-xs">
           <label className="mb-1.5 block text-sm text-ink-muted" htmlFor="readingLength">
             Umfang
@@ -93,7 +102,7 @@ export function BookForm({ book }: { book?: AdminBook }) {
         </div>
       </details>
 
-      <details className="mt-3 rounded-md border border-line px-4 py-3" open={!!book && !!(book.width_mm || book.height_mm || book.thickness_mm)}>
+      <details className="mt-3 rounded-md border border-line px-4 py-3" open={!!book && (!!(book.width_mm || book.height_mm || book.thickness_mm) || book.dimensions_check)}>
         <summary className="min-h-8 cursor-pointer text-sm font-medium text-ink">Maße für die Hermes-Paketprüfung</summary>
         <p className="mt-2 text-xs leading-relaxed text-ink-faint">
           Außenmaße des Buches. Ohne Maße kann das System die Paketklasse nicht schätzen und markiert Bestellungen zur manuellen
@@ -104,6 +113,16 @@ export function BookForm({ book }: { book?: AdminBook }) {
           <Field label="Höhe (mm)" name="heightMm" type="number" inputMode="numeric" defaultValue={book?.height_mm?.toString() ?? ""} errors={errs(state, "heightMm")} />
           <Field label="Dicke (mm)" name="thicknessMm" type="number" inputMode="numeric" defaultValue={book?.thickness_mm?.toString() ?? ""} errors={errs(state, "thicknessMm")} />
           <Field label="Gewicht (g, optional)" name="weightG" type="number" inputMode="numeric" defaultValue={book?.weight_g?.toString() ?? ""} errors={errs(state, "weightG")} />
+        </div>
+        <label className="mt-4 flex min-h-10 items-center gap-3 text-sm text-ink">
+          <input type="checkbox" name="dimensionsCheck" defaultChecked={book?.dimensions_check} className="h-4 w-4 accent-forest" />
+          Maße unsicher – bitte nachmessen
+        </label>
+        <div className="mt-2">
+          <label className="mb-1.5 block text-sm text-ink-muted" htmlFor="dimensionsNote">
+            Notiz zur Prüfung (intern)
+          </label>
+          <input id="dimensionsNote" name="dimensionsNote" defaultValue={book?.dimensions_note ?? ""} maxLength={300} className={inputClass} />
         </div>
       </details>
 

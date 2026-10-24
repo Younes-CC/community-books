@@ -60,7 +60,7 @@ export async function getRecommendationBooks(): Promise<RecommendBook[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("books")
-    .select("id, slug, title, image_path, stock_available, topics, levels, reading_length")
+    .select("id, slug, title, image_path, stock_available, topics, levels, reading_length, thickness_mm, dimensions_check, arabic_text_only")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
   if (error) throw error;

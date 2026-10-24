@@ -26,6 +26,9 @@ export const settingsSchema = z.object({
   hermesEmailBody: text(8000),
   pickupEmailSubject: text(200),
   pickupEmailBody: text(8000),
+  rateLimitAttemptsPerHour: intRange(1, 1000, "Bitte 1–1000 angeben."),
+  rateLimitOrdersPerIpDay: intRange(1, 1000, "Bitte 1–1000 angeben."),
+  rateLimitOrdersGlobalHour: intRange(1, 10000, "Bitte 1–10000 angeben."),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;

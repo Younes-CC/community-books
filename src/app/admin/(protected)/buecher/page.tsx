@@ -36,6 +36,9 @@ export default async function AdminBooksPage() {
                 {!(book.width_mm && book.height_mm && book.thickness_mm) && (
                   <span className="ml-2 text-xs text-ink-faint">· Maße fehlen</span>
                 )}
+                {book.dimensions_check && (
+                  <span className="ml-2 text-xs font-medium text-sand">· Maße prüfen</span>
+                )}
               </p>
             </div>
 

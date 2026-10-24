@@ -29,8 +29,8 @@ export function SettingsForm({ settings, isOwner }: { settings: SettingsRow; isO
         </p>
       )}
 
-      <Card title="Kontakt & Hermes-Absender" hint="Diese Angaben erscheinen nur in den E-Mails, die ihr selbst verschickt — nicht öffentlich auf der Website.">
-        <Field label="Projekt-E-Mail (Kontakt & Absender)" name="projectEmail" type="email" defaultValue={settings.project_email ?? ""} error={fe("projectEmail")} placeholder="kontakt@…" />
+      <Card title="Kontakt & Hermes-Absender" hint="Die Projekt-E-Mail wird öffentlich als Kontakt angezeigt (Fußzeile, Datenschutz, Impressum). Absendername und Absenderadresse sind nicht öffentlich: Sie stehen nur hier und in der Hermes-Anleitung, die ihr selbst verschickt.">
+        <Field label="Projekt-E-Mail (öffentlicher Kontakt & Absender)" name="projectEmail" type="email" defaultValue={settings.project_email ?? ""} error={fe("projectEmail")} placeholder="kontakt@…" />
         <Field label="Absendername (Hermes)" name="senderName" defaultValue={settings.sender_name ?? ""} error={fe("senderName")} />
         <Field label="Hermes-Absenderadresse: Straße und Hausnummer / Postfach" name="hermesSenderStreet" defaultValue={settings.hermes_sender_street ?? ""} error={fe("hermesSenderStreet")} />
         <Field label="Hermes-Absenderadresse: PLZ und Ort" name="hermesSenderZipCity" defaultValue={settings.hermes_sender_zip_city ?? ""} error={fe("hermesSenderZipCity")} />
@@ -87,6 +87,17 @@ export function SettingsForm({ settings, isOwner }: { settings: SettingsRow; isO
             <Field label="Maximale Frist (Stunden)" name="autoCancelHours" type="number" min="1" defaultValue={String(settings.auto_cancel_unprocessed_hours)} error={fe("autoCancelHours")} />
           </div>
         </div>
+      </Card>
+
+      <Card title="Missbrauchsschutz" hint="Schützt vor automatisierten Massen-Reservierungen. Gespeichert wird nur ein täglich wechselnder, nicht rückrechenbarer Hash der Netzwerkadresse für maximal 24 Stunden. Die Standardwerte sind großzügig gewählt.">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Versuche pro Netzwerk und Stunde" name="rateLimitAttemptsPerHour" type="number" min="1" defaultValue={String(settings.rate_limit_attempts_per_hour)} error={fe("rateLimitAttemptsPerHour")} />
+          <Field label="Reservierungen pro Netzwerk und Tag" name="rateLimitOrdersPerIpDay" type="number" min="1" defaultValue={String(settings.rate_limit_orders_per_ip_day)} error={fe("rateLimitOrdersPerIpDay")} />
+          <Field label="Neue Reservierungen insgesamt pro Stunde" name="rateLimitOrdersGlobalHour" type="number" min="1" defaultValue={String(settings.rate_limit_orders_global_hour)} error={fe("rateLimitOrdersGlobalHour")} />
+        </div>
+        <p className="text-xs leading-relaxed text-ink-faint">
+          Mehrere Personen im selben WLAN (z. B. bei einer Veranstaltung) teilen sich eine Netzwerkadresse — bei Bedarf die Werte erhöhen.
+        </p>
       </Card>
 
       <Card title="Abholung" hint="Die genaue Adresse ist nur hier hinterlegt und wird erst in der Abhol-E-Mail mitgeteilt.">

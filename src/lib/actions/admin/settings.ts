@@ -54,6 +54,9 @@ export async function updateSettingsAction(
     hermes_email_body: d.hermesEmailBody,
     pickup_email_subject: d.pickupEmailSubject,
     pickup_email_body: d.pickupEmailBody,
+    rate_limit_attempts_per_hour: d.rateLimitAttemptsPerHour,
+    rate_limit_orders_per_ip_day: d.rateLimitOrdersPerIpDay,
+    rate_limit_orders_global_hour: d.rateLimitOrdersGlobalHour,
   };
 
   // Only the main admin may switch automatic cancellation on or off (also enforced by a DB trigger).
