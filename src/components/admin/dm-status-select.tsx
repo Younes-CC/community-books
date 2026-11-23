@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setDmStatusAction } from "@/lib/actions/admin/dm-orders";
-import { DM_STATUSES, ORDER_STATUS_LABELS } from "@/lib/constants";
+import { dmStatusesFor, ORDER_STATUS_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 
 const TONE: Record<string, string> = {
@@ -11,11 +11,23 @@ const TONE: Record<string, string> = {
   mail_sent: "border-line-strong bg-paper-strong text-ink-muted",
   qr_received: "border-forest/30 bg-forest-tint text-forest-soft",
   packed: "border-forest/40 bg-forest-tint text-forest",
+  ready_for_pickup: "border-forest/40 bg-forest-tint text-forest",
+  picked_up: "border-forest-soft bg-forest-soft text-paper",
   shipped: "border-forest-soft bg-forest-soft text-paper",
 };
 
 // Changes the status of a TikTok order directly from the list (one tap, no confirmation needed).
-export function DmStatusSelect({ orderId, status, className }: { orderId: string; status: string; className?: string }) {
+export function DmStatusSelect({
+  orderId,
+  status,
+  type,
+  className,
+}: {
+  orderId: string;
+  status: string;
+  type: string;
+  className?: string;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -44,7 +56,7 @@ export function DmStatusSelect({ orderId, status, className }: { orderId: string
           TONE[status] ?? "border-line-strong bg-paper text-ink",
         )}
       >
-        {DM_STATUSES.map((s) => (
+        {dmStatusesFor(type).map((s) => (
           <option key={s} value={s} className="bg-paper text-ink">
             {ORDER_STATUS_LABELS[s]}
           </option>

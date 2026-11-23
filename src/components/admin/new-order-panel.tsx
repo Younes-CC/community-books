@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { createDmOrderAction } from "@/lib/actions/admin/dm-orders";
 import { BookPicker, type PickerBook } from "@/components/admin/book-picker";
-import { DM_STATUSES, ORDER_STATUS_LABELS, type DmStatus } from "@/lib/constants";
+import { FulfillmentToggle, type TiktokFulfillment } from "@/components/admin/fulfillment-toggle";
+import { dmStatusesFor, ORDER_STATUS_LABELS } from "@/lib/constants";
 
 const field =
   "min-h-12 w-full rounded-md border border-line-strong bg-paper px-3.5 py-2.5 text-base text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none sm:text-sm";
@@ -14,7 +15,8 @@ export function NewOrderPanel({ books }: { books: PickerBook[] }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
-  const [status, setStatus] = useState<DmStatus>("new");
+  const [type, setType] = useState<TiktokFulfillment>("shipping");
+  const [status, setStatus] = useState<string>("new");
   // one key per form fill: a double tap or a retry can never create the order twice
   const [clientKey, setClientKey] = useState(() => crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function NewOrderPanel({ books }: { books: PickerBook[] }) {
     setSaved(null);
     startTransition(async () => {
       try {
-        const result = await createDmOrderAction({ tiktokName: name, bookIds: selected, status, clientKey });
+        const result = await createDmOrderAction({ tiktokName: name, bookIds: selected, fulfillmentType: type, status, clientKey });
         if (!result.ok) {
           setError(result.message);
           router.refresh(); // stock may have changed
@@ -42,6 +44,7 @@ export function NewOrderPanel({ books }: { books: PickerBook[] }) {
         setName("");
         setSelected([]);
         setStatus("new");
+        setType("shipping");
         setClientKey(crypto.randomUUID());
         router.refresh();
         nameRef.current?.focus();
@@ -115,11 +118,22 @@ export function NewOrderPanel({ books }: { books: PickerBook[] }) {
         <BookPicker books={books} selected={selected} onChange={setSelected} />
 
         <div>
+          <span className="mb-1.5 block text-sm text-ink-muted">Übergabe</span>
+          <FulfillmentToggle
+            value={type}
+            onChange={(v) => {
+              setType(v);
+              setStatus("new"); // pickup has its own status steps
+            }}
+          />
+        </div>
+
+        <div>
           <label htmlFor="dmStatus" className="mb-1.5 block text-sm text-ink-muted">
             Status
           </label>
-          <select id="dmStatus" value={status} onChange={(e) => setStatus(e.target.value as DmStatus)} className={field}>
-            {DM_STATUSES.map((s) => (
+          <select id="dmStatus" value={status} onChange={(e) => setStatus(e.target.value)} className={field}>
+            {dmStatusesFor(type).map((s) => (
               <option key={s} value={s}>
                 {ORDER_STATUS_LABELS[s]}
               </option>

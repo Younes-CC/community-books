@@ -3,14 +3,14 @@ import type { AdminOrderListRow } from "@/lib/data/admin/orders";
 import { OrderStatusBadge } from "@/components/admin/status-badge";
 import { DmStatusSelect } from "@/components/admin/dm-status-select";
 import { CancelOrderButton } from "@/components/admin/cancel-order-button";
-import { SOURCE_LABELS } from "@/lib/constants";
+import { DM_CANCELLABLE, FULFILLMENT_LABELS, SOURCE_LABELS } from "@/lib/constants";
 import { formatDateShort } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 const isDm = (o: AdminOrderListRow) => o.source === "tiktok_dm";
 const isOpen = (o: AdminOrderListRow) => !["cancelled", "expired"].includes(o.status);
 // shipped orders keep their stock reserved and cannot be cancelled any more
-const canCancel = (o: AdminOrderListRow) => isDm(o) && ["new", "mail_sent", "qr_received", "packed"].includes(o.status);
+const canCancel = (o: AdminOrderListRow) => isDm(o) && DM_CANCELLABLE.includes(o.status);
 
 function SourceBadge({ source }: { source: AdminOrderListRow["source"] }) {
   return (
@@ -25,8 +25,12 @@ function SourceBadge({ source }: { source: AdminOrderListRow["source"] }) {
   );
 }
 
+function TypeLabel({ o }: { o: AdminOrderListRow }) {
+  return isDm(o) ? <span>{o.type === "pickup" ? "Abholung" : "Hermes"}</span> : <span>{FULFILLMENT_LABELS[o.type]}</span>;
+}
+
 function StatusCell({ o }: { o: AdminOrderListRow }) {
-  return isDm(o) && isOpen(o) ? <DmStatusSelect orderId={o.id} status={o.status} /> : <OrderStatusBadge status={o.status} />;
+  return isDm(o) && isOpen(o) ? <DmStatusSelect orderId={o.id} status={o.status} type={o.type} /> : <OrderStatusBadge status={o.status} />;
 }
 
 function Actions({ o }: { o: AdminOrderListRow }) {
@@ -64,6 +68,7 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
                 <p className="break-words font-medium text-ink">{o.name}</p>
                 <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">
                   <SourceBadge source={o.source} />
+                  <TypeLabel o={o} />
                   <span>{formatDateShort(o.createdAt)}</span>
                 </p>
               </div>
@@ -104,7 +109,8 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
                   <p className="break-words font-medium text-ink">{o.name}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-ink-faint">
                     <SourceBadge source={o.source} />
-                    {o.orderNumber}
+                    <TypeLabel o={o} />
+                    <span>· {o.orderNumber}</span>
                   </p>
                 </td>
                 <td className="max-w-[20rem] px-3 py-3 text-ink-muted">

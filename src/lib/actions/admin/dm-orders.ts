@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import * as z from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
-import { DM_STATUSES, MAX_BOOKS_PER_PERSON } from "@/lib/constants";
+import { DM_PICKUP_STATUSES, DM_STATUSES, MAX_BOOKS_PER_PERSON } from "@/lib/constants";
 
 // Orders that arrive as TikTok direct messages and are captured by hand in the dashboard.
 
@@ -18,7 +18,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   book_not_found: "Ein Buch wurde nicht gefunden.",
   book_not_available: "Ein Buch ist nicht mehr aktiv.",
   out_of_stock: "Eines der Bücher ist leider nicht mehr verfügbar.",
-  invalid_status: "Ungültiger Status.",
+  invalid_status: "Dieser Status passt nicht zur gewählten Übergabe (Abholung hat keinen QR-Code).",
+  invalid_fulfillment_type: "Bitte Hermes-Versand oder Abholung wählen.",
   no_change: "Die Bestellung hat diesen Status bereits.",
   already_final: "Diese Bestellung ist storniert und kann nicht mehr geändert werden.",
   not_cancellable: "Versendete Bestellungen können nicht storniert werden.",
@@ -42,7 +43,8 @@ function refresh(orderId?: string) {
 }
 
 const id = z.uuid();
-const statusSchema = z.enum(DM_STATUSES);
+const statusSchema = z.enum([...DM_STATUSES, ...DM_PICKUP_STATUSES]);
+const typeSchema = z.enum(["shipping", "pickup"]);
 const nameSchema = z.string().trim().min(1, "Bitte den TikTok-Namen eintragen.").max(80, "Der TikTok-Name ist zu lang.");
 const booksSchema = z.array(z.uuid()).min(1, "Bitte mindestens ein Buch auswählen.").max(MAX_BOOKS_PER_PERSON, "Maximal drei Bücher pro Bestellung.");
 
@@ -51,19 +53,21 @@ export type DmResult<T = object> = ({ ok: true } & T) | { ok: false; message: st
 export async function createDmOrderAction(input: {
   tiktokName: string;
   bookIds: string[];
+  fulfillmentType: string;
   status: string;
   clientKey: string;
 }): Promise<DmResult<{ orderNumber: string; tiktokName: string }>> {
   await requireAdmin();
   const parsed = z
-    .object({ tiktokName: nameSchema, bookIds: booksSchema, status: statusSchema, clientKey: id })
+    .object({ tiktokName: nameSchema, bookIds: booksSchema, fulfillmentType: typeSchema, status: statusSchema, clientKey: id })
     .safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_create_dm_order", {
+  const { data, error } = await supabase.rpc("admin_create_tiktok_order", {
     p_tiktok_name: parsed.data.tiktokName,
     p_book_ids: parsed.data.bookIds,
+    p_fulfillment_type: parsed.data.fulfillmentType,
     p_status: parsed.data.status,
     p_client_key: parsed.data.clientKey,
   });
@@ -102,5 +106,17 @@ export async function updateDmOrderAction(input: {
   });
   if (error) return { ok: false, message: mapError(error.message) };
   refresh(parsed.data.orderId);
+  return { ok: true };
+}
+
+export async function setDmFulfillmentAction(orderId: string, type: string): Promise<DmResult> {
+  await requireAdmin();
+  if (!id.safeParse(orderId).success || !typeSchema.safeParse(type).success) {
+    return { ok: false, message: "Ungültige Anfrage." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_set_dm_fulfillment", { p_order_id: orderId, p_type: type });
+  if (error) return { ok: false, message: mapError(error.message) };
+  refresh(orderId);
   return { ok: true };
 }

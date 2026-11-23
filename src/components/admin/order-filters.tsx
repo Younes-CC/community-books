@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
-import { DM_STATUSES, ORDER_STATUS_LABELS } from "@/lib/constants";
+import { DM_PICKUP_STATUSES, DM_STATUSES, ORDER_STATUS_LABELS } from "@/lib/constants";
 
 const select =
   "min-h-11 rounded-full border border-line-strong bg-paper px-4 text-sm text-ink focus:border-forest focus:outline-none";
@@ -60,6 +60,11 @@ export function OrderFilters() {
           {DM_STATUSES.map((s) => (
             <option key={s} value={s}>
               {ORDER_STATUS_LABELS[s]}
+            </option>
+          ))}
+          {DM_PICKUP_STATUSES.filter((s) => s !== "new").map((s) => (
+            <option key={s} value={s}>
+              {ORDER_STATUS_LABELS[s]} (Abholung)
             </option>
           ))}
           <option value="storniert">Storniert</option>

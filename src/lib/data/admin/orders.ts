@@ -15,6 +15,7 @@ export type AdminOrderListRow = {
   orderNumber: string;
   createdAt: string;
   source: OrderSource;
+  type: "shipping" | "pickup";
   name: string; // @tiktok-name for TikTok orders, "Vorname Nachname" for website orders
   status: string;
   bookTitles: string[];
@@ -28,7 +29,7 @@ export async function getAdminOrders(filters: OrderFilters): Promise<AdminOrderL
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, source, tiktok_name, first_name, last_name, order_status, order_items(title_snapshot, released_at)",
+      "id, order_number, created_at, source, fulfillment_type, tiktok_name, first_name, last_name, order_status, order_items(title_snapshot, released_at)",
     )
     .order("created_at", { ascending: filters.sort === "alt" })
     .limit(500);
@@ -57,6 +58,7 @@ export async function getAdminOrders(filters: OrderFilters): Promise<AdminOrderL
     orderNumber: o.order_number,
     createdAt: o.created_at,
     source: o.source as OrderSource,
+    type: o.fulfillment_type as "shipping" | "pickup",
     name: o.source === "tiktok_dm" ? (o.tiktok_name ?? o.first_name) : `${o.first_name} ${o.last_name}`.trim(),
     status: o.order_status,
     bookTitles: o.order_items.filter((i) => !i.released_at).map((i) => i.title_snapshot),

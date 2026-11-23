@@ -198,7 +198,8 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
-      admin_create_dm_order: OrderFn<{ p_book_ids: string[]; p_client_key?: string; p_status?: string; p_tiktok_name: string }>;
+      admin_create_tiktok_order: OrderFn<{ p_book_ids: string[]; p_client_key?: string; p_fulfillment_type: string; p_status?: string; p_tiktok_name: string }>;
+      admin_set_dm_fulfillment: OrderFn<{ p_order_id: string; p_type: string }>;
       admin_set_dm_status: OrderFn<{ p_order_id: string; p_to: string }>;
       admin_update_dm_order: OrderFn<{ p_book_ids: string[]; p_order_id: string; p_tiktok_name: string }>;
       admin_cancel_order: OrderFn<{ p_note?: string; p_order_id: string }>;

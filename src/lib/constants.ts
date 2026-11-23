@@ -45,6 +45,13 @@ export const DM_STATUSES = ["new", "mail_sent", "qr_received", "packed", "shippe
 export type DmStatus = (typeof DM_STATUSES)[number];
 export const isDmStatus = (s: string): s is DmStatus => (DM_STATUSES as readonly string[]).includes(s);
 
+// Hermes orders use the five steps above; pickup orders have no QR code and need only three.
+export const DM_PICKUP_STATUSES = ["new", "ready_for_pickup", "picked_up"] as const;
+export const dmStatusesFor = (type: string): readonly OrderStatus[] =>
+  type === "pickup" ? DM_PICKUP_STATUSES : DM_STATUSES;
+// statuses in which a TikTok order can still be cancelled (finished orders cannot)
+export const DM_CANCELLABLE: readonly string[] = ["new", "mail_sent", "qr_received", "packed", "ready_for_pickup"];
+
 export type OrderSource = "website" | "tiktok_dm";
 export const SOURCE_LABELS: Record<OrderSource, string> = { website: "Website", tiktok_dm: "TikTok" };
 

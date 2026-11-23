@@ -48,7 +48,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <div className="min-w-0">
             <h1 className="break-words font-serif text-2xl text-ink">{order.tiktok_name ?? order.first_name}</h1>
             <p className="mt-1 text-sm text-ink-muted">
-              TikTok-Bestellung · {order.order_number} · {formatDate(order.created_at)}
+              TikTok-Bestellung · {order.fulfillment_type === "pickup" ? "Abholung" : "Hermes-Versand"} · {order.order_number} · {formatDate(order.created_at)}
             </p>
           </div>
           <OrderStatusBadge status={order.order_status} className="text-sm" />
@@ -61,8 +61,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             .filter((b) => b.is_active || items.some((i) => i.bookId === b.id))
             .map((b) => ({ id: b.id, title: b.title, available: b.stock_available }))}
           status={order.order_status}
+          type={order.fulfillment_type as "shipping" | "pickup"}
           locked={cancelled}
-          canCancel={["new", "mail_sent", "qr_received", "packed"].includes(order.order_status)}
         />
         <OrderHistory history={history} />
       </div>

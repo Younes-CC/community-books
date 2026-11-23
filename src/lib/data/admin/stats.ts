@@ -7,6 +7,7 @@ export type AdminStats = {
   qrReceived: number; // QR-Code erhalten
   toPack: number; // Zu verpacken = QR-Code erhalten, noch nicht verpackt
   shipped: number; // Versendet
+  pickupReady: number; // Abholbereit
   titles: number;
   availableCopies: number;
   reservedCopies: number;
@@ -33,6 +34,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     qrReceived: count("qr_received"),
     toPack: count("qr_received"),
     shipped: count("shipped"),
+    pickupReady: count("ready_for_pickup"),
     titles: books.length,
     availableCopies: books.reduce((sum, b) => sum + b.stock_available, 0),
     reservedCopies: books.reduce((sum, b) => sum + (b.stock_total - b.stock_available), 0),

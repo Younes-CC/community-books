@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateDmOrderAction } from "@/lib/actions/admin/dm-orders";
+import { setDmFulfillmentAction, updateDmOrderAction } from "@/lib/actions/admin/dm-orders";
+import { FulfillmentToggle, type TiktokFulfillment } from "@/components/admin/fulfillment-toggle";
+import { DM_CANCELLABLE } from "@/lib/constants";
 import { BookPicker, type PickerBook } from "@/components/admin/book-picker";
 import { DmStatusSelect } from "@/components/admin/dm-status-select";
 import { CancelOrderButton } from "@/components/admin/cancel-order-button";
@@ -17,16 +19,16 @@ export function DmOrderEditor({
   bookIds,
   books,
   status,
+  type,
   locked,
-  canCancel,
 }: {
   orderId: string;
   tiktokName: string;
   bookIds: string[];
   books: PickerBook[];
   status: string;
+  type: TiktokFulfillment;
   locked: boolean; // cancelled: nothing can be changed any more
-  canCancel: boolean;
 }) {
   const [name, setName] = useState(tiktokName);
   const [selected, setSelected] = useState(bookIds);
@@ -34,6 +36,21 @@ export function DmOrderEditor({
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const canCancel = !locked && DM_CANCELLABLE.includes(status);
+
+  function changeType(next: TiktokFulfillment) {
+    if (next === type) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        const result = await setDmFulfillmentAction(orderId, next);
+        if (!result.ok) setError(result.message);
+        router.refresh();
+      } catch {
+        setError("Fehlgeschlagen.");
+      }
+    });
+  }
 
   const dirty = name.trim() !== tiktokName || [...selected].sort().join() !== [...bookIds].sort().join();
 
@@ -59,12 +76,18 @@ export function DmOrderEditor({
   return (
     <div className="space-y-6">
       <section className="rounded-md border border-line p-4 sm:p-5">
+        {!locked && (
+          <div className="mb-4">
+            <h2 className="mb-2 text-xs uppercase tracking-wide text-ink-faint">Übergabe</h2>
+            <FulfillmentToggle value={type} onChange={changeType} disabled={pending} />
+          </div>
+        )}
         <h2 className="text-xs uppercase tracking-wide text-ink-faint">Status</h2>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           {locked ? (
             <p className="text-sm text-brick">Storniert — Bücher wurden wieder freigegeben.</p>
           ) : (
-            <DmStatusSelect orderId={orderId} status={status} className="w-full sm:w-64" />
+            <DmStatusSelect orderId={orderId} status={status} type={type} className="w-full sm:w-64" />
           )}
           {canCancel && <CancelOrderButton orderId={orderId} label={tiktokName} />}
         </div>
