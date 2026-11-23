@@ -26,8 +26,8 @@ export type OrderStatus =
 export type FulfillmentType = "shipping" | "pickup";
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  new: "Neu eingegangen",
-  mail_sent: "Mail versendet",
+  new: "Anfrage",
+  mail_sent: "Anleitung gesendet",
   qr_received: "QR-Code erhalten",
   processing: "In Bearbeitung",
   packed: "Verpackt",
@@ -39,6 +39,14 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: "Storniert",
   expired: "Abgelaufen",
 };
+
+// The five manual processing steps of a TikTok order (cancelled is a separate technical state).
+export const DM_STATUSES = ["new", "mail_sent", "qr_received", "packed", "shipped"] as const;
+export type DmStatus = (typeof DM_STATUSES)[number];
+export const isDmStatus = (s: string): s is DmStatus => (DM_STATUSES as readonly string[]).includes(s);
+
+export type OrderSource = "website" | "tiktok_dm";
+export const SOURCE_LABELS: Record<OrderSource, string> = { website: "Website", tiktok_dm: "TikTok" };
 
 export const FULFILLMENT_LABELS: Record<FulfillmentType, string> = {
   shipping: "Hermes-Versand",

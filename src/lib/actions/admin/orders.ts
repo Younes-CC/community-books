@@ -16,7 +16,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_transition: "Diese Aktion ist im aktuellen Status nicht möglich.",
   no_change: "Die Bestellung hat diesen Status bereits.",
   not_cancellable: "Diese Bestellung kann nicht mehr storniert werden (Bücher bereits versendet/abgeholt).",
-  unknown_admin: "Dieser Bearbeiter existiert nicht.",
   invalid_parcel_class: "Ungültige Paketklasse.",
 };
 
@@ -77,18 +76,6 @@ export async function extendDeadlineAction(orderId: string): Promise<Result> {
   if (!id.safeParse(orderId).success) return { ok: false, message: "Ungültige Anfrage." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_extend_deadline", { p_order_id: orderId });
-  if (error) return { ok: false, message: mapError(error.message) };
-  refresh(orderId);
-  return { ok: true };
-}
-
-export async function assignOrderAction(orderId: string, adminId: string | null): Promise<Result> {
-  await requireAdmin();
-  if (!id.safeParse(orderId).success || (adminId !== null && !id.safeParse(adminId).success)) {
-    return { ok: false, message: "Ungültige Anfrage." };
-  }
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("admin_assign_order", { p_order_id: orderId, p_admin: adminId });
   if (error) return { ok: false, message: mapError(error.message) };
   refresh(orderId);
   return { ok: true };

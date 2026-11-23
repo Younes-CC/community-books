@@ -7,7 +7,6 @@ export type AdminUser = {
   id: string;
   email: string | null;
   displayName: string;
-  code: string | null;
   isOwner: boolean;
 };
 
@@ -21,7 +20,7 @@ export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
 
   const { data: adminRow } = await supabase
     .from("admins")
-    .select("user_id, display_name, code, role")
+    .select("user_id, display_name, role")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -31,7 +30,6 @@ export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
     id: user.id,
     email: user.email ?? null,
     displayName: adminRow.display_name ?? user.email ?? "Admin",
-    code: adminRow.code,
     isOwner: adminRow.role === "owner",
   };
 });

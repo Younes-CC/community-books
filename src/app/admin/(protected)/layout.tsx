@@ -9,7 +9,7 @@ export default async function AdminProtectedLayout({
   const admin = await requireAdmin();
 
   return (
-    <AdminShell name={admin.displayName} code={admin.code} email={admin.email}>
+    <AdminShell name={admin.displayName} email={admin.email}>
       {children}
     </AdminShell>
   );

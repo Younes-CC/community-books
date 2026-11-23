@@ -3,18 +3,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/admin";
-import { getAdminOrderDetail, getAdmins } from "@/lib/data/admin/orders";
+import { getAdminOrderDetail } from "@/lib/data/admin/orders";
+import { getAdminBooks } from "@/lib/data/admin/books";
 import { getAdminSettings } from "@/lib/data/settings";
 import { BookCover } from "@/components/books/book-cover";
 import { OrderStatusBadge } from "@/components/admin/status-badge";
-import { AssigneeSelect } from "@/components/admin/assignee-select";
+import { DmOrderEditor } from "@/components/admin/dm-order-editor";
+import { OrderHistory } from "@/components/admin/order-history";
 import { OrderDetailActions } from "@/components/admin/order-detail-actions";
 import { OrderEmailPanel } from "@/components/admin/order-email-panel";
 import { OrderDetailsForm } from "@/components/admin/order-details-form";
 import { ParcelCard } from "@/components/admin/parcel-card";
 import {
   FULFILLMENT_LABELS,
-  ORDER_STATUS_LABELS,
   parcelClassLabel,
   type FulfillmentType,
   type OrderStatus,
@@ -30,22 +31,50 @@ export const metadata: Metadata = { title: "Bestellung — Admin" };
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireAdmin();
-  const [detail, admins, settings] = await Promise.all([getAdminOrderDetail(id), getAdmins(), getAdminSettings()]);
+  const detail = await getAdminOrderDetail(id);
   if (!detail) notFound();
 
   const { order, items, history } = detail;
+
+  if (order.source === "tiktok_dm") {
+    const books = await getAdminBooks();
+    const cancelled = order.order_status === "cancelled" || order.order_status === "expired";
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-ink-muted hover:text-ink">
+          ← Alle Bestellungen
+        </Link>
+        <header className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="break-words font-serif text-2xl text-ink">{order.tiktok_name ?? order.first_name}</h1>
+            <p className="mt-1 text-sm text-ink-muted">
+              TikTok-Bestellung · {order.order_number} · {formatDate(order.created_at)}
+            </p>
+          </div>
+          <OrderStatusBadge status={order.order_status} className="text-sm" />
+        </header>
+        <DmOrderEditor
+          orderId={order.id}
+          tiktokName={order.tiktok_name ?? order.first_name}
+          bookIds={items.map((i) => i.bookId)}
+          books={books
+            .filter((b) => b.is_active || items.some((i) => i.bookId === b.id))
+            .map((b) => ({ id: b.id, title: b.title, available: b.stock_available }))}
+          status={order.order_status}
+          locked={cancelled}
+          canCancel={["new", "mail_sent", "qr_received", "packed"].includes(order.order_status)}
+        />
+        <OrderHistory history={history} />
+      </div>
+    );
+  }
+
+  const settings = await getAdminSettings();
   const status = order.order_status as OrderStatus;
   const type = order.fulfillment_type as FulfillmentType;
   const isShipping = type === "shipping";
   const final = isFinal(status);
   const now = serverNow();
-
-  const adminOptions = admins.map((a) => ({
-    userId: a.user_id,
-    code: a.code,
-    name: a.display_name ?? a.email ?? "Admin",
-  }));
-  const adminName = new Map(adminOptions.map((a) => [a.userId, a.name]));
 
   const estimate = estimateParcel(
     items.map((i) => i.dims),
@@ -112,20 +141,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       )}
 
       <section className="rounded-md border border-line p-4 sm:p-5">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <h2 className="text-xs uppercase tracking-wide text-ink-faint">Bearbeiter</h2>
-            <AssigneeSelect orderId={order.id} value={order.assigned_to} admins={adminOptions} className="mt-1.5" />
-          </div>
-          <div className="text-sm">
-            <h2 className="text-xs uppercase tracking-wide text-ink-faint">Reservierungszeit</h2>
-            <p className="mt-1.5 text-ink">
-              {dueRemaining && <span className={dueRemaining.overdue ? "text-brick" : ""}>Bearbeiten bis: {dueRemaining.text}</span>}
-              {qrRemaining && <span className={qrRemaining.overdue ? "text-brick" : ""}>QR-Code bis: {qrRemaining.text}</span>}
-              {pickupRemaining && <span className={pickupRemaining.overdue ? "text-brick" : ""}>Abholfrist: {pickupRemaining.text}</span>}
-              {!dueRemaining && !qrRemaining && !pickupRemaining && <span className="text-ink-faint">Keine laufende Frist</span>}
-            </p>
-          </div>
+        <div className="text-sm">
+          <h2 className="text-xs uppercase tracking-wide text-ink-faint">Reservierungszeit</h2>
+          <p className="mt-1.5 text-ink">
+            {dueRemaining && <span className={dueRemaining.overdue ? "text-brick" : ""}>Bearbeiten bis: {dueRemaining.text}</span>}
+            {qrRemaining && <span className={qrRemaining.overdue ? "text-brick" : ""}>QR-Code bis: {qrRemaining.text}</span>}
+            {pickupRemaining && <span className={pickupRemaining.overdue ? "text-brick" : ""}>Abholfrist: {pickupRemaining.text}</span>}
+            {!dueRemaining && !qrRemaining && !pickupRemaining && <span className="text-ink-faint">Keine laufende Frist</span>}
+          </p>
         </div>
         <div className="mt-5 border-t border-line pt-5">
           <OrderDetailActions
@@ -249,47 +272,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         </section>
       </div>
 
-      <section className="rounded-md border border-line p-4 sm:p-5">
-        <h2 className="font-serif text-lg text-ink">Statusverlauf</h2>
-        {history.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-muted">Noch keine Einträge.</p>
-        ) : (
-          <ol className="mt-4 space-y-4 border-l border-line pl-5">
-            {[...history].reverse().map((h) => {
-              const from = h.from_status ? ORDER_STATUS_LABELS[h.from_status as OrderStatus] ?? h.from_status : null;
-              const to = h.to_status ? ORDER_STATUS_LABELS[h.to_status as OrderStatus] ?? h.to_status : null;
-              const who =
-                h.source === "system"
-                  ? "Automatisch"
-                  : h.source === "customer"
-                    ? "Empfänger"
-                    : (h.actor_name ?? (h.actor ? adminName.get(h.actor) : null) ?? "Admin");
-              return (
-                <li key={h.id} className="relative text-sm">
-                  <span className="absolute -left-[25px] top-1.5 h-2 w-2 rounded-full bg-forest" />
-                  <p className="text-ink">
-                    {h.event === "status" || h.event === "mail_sent" ? (
-                      <>
-                        {h.event === "status" && from ? (
-                          <>
-                            {from} → <strong className="font-medium">{to}</strong>
-                          </>
-                        ) : (
-                          <strong className="font-medium">{to ?? "Eingegangen"}</strong>
-                        )}
-                      </>
-                    ) : null}
-                    {h.note && <span className="text-ink-muted">{h.event === "status" && from ? " · " : ""}{h.note}</span>}
-                  </p>
-                  <p className="text-xs text-ink-faint">
-                    {formatDate(h.created_at)} · {who}
-                  </p>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </section>
+      <OrderHistory history={history} />
     </div>
   );
 }

@@ -3,12 +3,12 @@
 import { useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
-import { ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/constants";
-import { cn } from "@/lib/cn";
+import { DM_STATUSES, ORDER_STATUS_LABELS } from "@/lib/constants";
 
-type AdminChip = { code: string; name: string };
+const select =
+  "min-h-11 rounded-full border border-line-strong bg-paper px-4 text-sm text-ink focus:border-forest focus:outline-none";
 
-export function OrderFilters({ admins }: { admins: AdminChip[] }) {
+export function OrderFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -26,19 +26,7 @@ export function OrderFilters({ admins }: { admins: AdminChip[] }) {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
-  const hasFilters = ["scope", "status", "type", "overdue", "q"].some((k) => params.get(k));
-
-  const scopes = [
-    { key: "", label: "Alle" },
-    { key: "meine", label: "Meine" },
-    ...admins.map((a) => ({ key: a.code, label: a.name })),
-    { key: "unzugewiesen", label: "Nicht zugewiesen" },
-  ];
-  const types = [
-    { key: "", label: "Versand + Abholung" },
-    { key: "shipping", label: "Versand" },
-    { key: "pickup", label: "Abholung" },
-  ];
+  const hasFilters = ["status", "sort", "q"].some((k) => params.get(k));
 
   return (
     <div className="space-y-3">
@@ -48,54 +36,43 @@ export function OrderFilters({ admins }: { admins: AdminChip[] }) {
           type="search"
           defaultValue={get("q")}
           key={get("q")}
-          placeholder="Suche: Bestellnummer, Name oder E-Mail"
+          placeholder="TikTok-Name suchen"
           aria-label="Bestellungen durchsuchen"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           onChange={(e) => {
             const value = e.target.value;
             if (timer.current) clearTimeout(timer.current);
-            timer.current = setTimeout(() => set({ q: value.trim() || null }), 350);
+            timer.current = setTimeout(() => set({ q: value.trim() || null }), 300);
           }}
-          className="min-h-12 w-full rounded-full border border-line-strong bg-paper py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none"
+          className="min-h-12 w-full rounded-full border border-line-strong bg-paper py-2.5 pl-10 pr-4 text-base text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none sm:text-sm"
         />
       </div>
-
-      <ChipRow label="Bearbeiter">
-        {scopes.map((s) => (
-          <Chip key={s.key || "alle"} active={get("scope") === s.key} onClick={() => set({ scope: s.key || null })}>
-            {s.label}
-          </Chip>
-        ))}
-      </ChipRow>
-
-      <ChipRow label="Art">
-        {types.map((t) => (
-          <Chip key={t.key || "alle"} active={get("type") === t.key} onClick={() => set({ type: t.key || null })}>
-            {t.label}
-          </Chip>
-        ))}
-        <Chip active={get("overdue") === "1"} tone="warn" onClick={() => set({ overdue: get("overdue") === "1" ? null : "1" })}>
-          Überfällig
-        </Chip>
-      </ChipRow>
 
       <div className="flex flex-wrap items-center gap-3">
         <label className="sr-only" htmlFor="status-filter">
           Status
         </label>
-        <select
-          id="status-filter"
-          value={get("status")}
-          onChange={(e) => set({ status: e.target.value || null })}
-          className="min-h-11 rounded-full border border-line-strong bg-paper px-4 text-sm text-ink focus:border-forest focus:outline-none"
-        >
-          <option value="">Alle Status</option>
-          <option value="aktiv">Nur aktive</option>
-          {(Object.keys(ORDER_STATUS_LABELS) as OrderStatus[]).map((s) => (
+        <select id="status-filter" value={get("status")} onChange={(e) => set({ status: e.target.value || null })} className={select}>
+          <option value="">Offene Bestellungen</option>
+          <option value="alle">Alle (inkl. storniert)</option>
+          {DM_STATUSES.map((s) => (
             <option key={s} value={s}>
               {ORDER_STATUS_LABELS[s]}
             </option>
           ))}
+          <option value="storniert">Storniert</option>
         </select>
+
+        <label className="sr-only" htmlFor="sort-filter">
+          Sortierung
+        </label>
+        <select id="sort-filter" value={get("sort")} onChange={(e) => set({ sort: e.target.value || null })} className={select}>
+          <option value="">Neueste zuerst</option>
+          <option value="alt">Älteste zuerst</option>
+        </select>
+
         {hasFilters && (
           <button
             type="button"
@@ -103,53 +80,10 @@ export function OrderFilters({ admins }: { admins: AdminChip[] }) {
             className="inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-muted hover:text-ink"
           >
             <X className="h-4 w-4" strokeWidth={1.5} />
-            Filter zurücksetzen
+            Zurücksetzen
           </button>
         )}
       </div>
     </div>
-  );
-}
-
-function ChipRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="hidden w-20 shrink-0 text-xs uppercase tracking-wide text-ink-faint sm:block">{label}</span>
-      <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label={label}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  tone,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  tone?: "warn";
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "min-h-10 shrink-0 whitespace-nowrap rounded-full border px-4 text-sm transition-colors",
-        active
-          ? tone === "warn"
-            ? "border-brick bg-brick text-paper"
-            : "border-forest bg-forest text-paper"
-          : tone === "warn"
-            ? "border-brick/40 text-brick hover:border-brick"
-            : "border-line-strong text-ink-muted hover:border-ink hover:text-ink",
-      )}
-    >
-      {children}
-    </button>
   );
 }

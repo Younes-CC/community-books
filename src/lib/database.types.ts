@@ -60,6 +60,7 @@ export type OrderRow = {
   book_title_snapshot: string | null;
   cancelled_at: string | null;
   city: string | null;
+  client_key: string | null;
   completed_at: string | null;
   country: string | null;
   created_at: string;
@@ -87,7 +88,9 @@ export type OrderRow = {
   shipped_at: string | null;
   shipping_price: number;
   social_username: string | null;
+  source: string;
   stock_returned: boolean;
+  tiktok_name: string | null;
   street: string | null;
   total: number;
   updated_at: string;
@@ -98,6 +101,7 @@ export type OrderItemRow = {
   created_at: string;
   id: string;
   order_id: string;
+  released_at: string | null;
   title_snapshot: string;
 };
 
@@ -194,7 +198,9 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
-      admin_assign_order: OrderFn<{ p_admin: string | null; p_order_id: string }>;
+      admin_create_dm_order: OrderFn<{ p_book_ids: string[]; p_client_key?: string; p_status?: string; p_tiktok_name: string }>;
+      admin_set_dm_status: OrderFn<{ p_order_id: string; p_to: string }>;
+      admin_update_dm_order: OrderFn<{ p_book_ids: string[]; p_order_id: string; p_tiktok_name: string }>;
       admin_cancel_order: OrderFn<{ p_note?: string; p_order_id: string }>;
       admin_extend_deadline: OrderFn<{ p_order_id: string }>;
       admin_mark_mail_sent: OrderFn<{ p_order_id: string }>;

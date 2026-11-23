@@ -30,17 +30,3 @@ export function OrderStatusBadge({ status, className }: { status: string; classN
     </span>
   );
 }
-
-export function AssigneeBadge({ code, name }: { code: string | null | undefined; name?: string | null }) {
-  if (!code) {
-    return <span className="text-xs text-ink-faint">Nicht zugewiesen</span>;
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
-      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-forest text-[11px] font-medium text-paper">
-        {code}
-      </span>
-      {name}
-    </span>
-  );
-}

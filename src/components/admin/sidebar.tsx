@@ -16,12 +16,10 @@ const LINKS = [
 
 export function AdminShell({
   name,
-  code,
   email,
   children,
 }: {
   name: string;
-  code: string | null;
   email: string | null;
   children: React.ReactNode;
 }) {
@@ -67,11 +65,6 @@ export function AdminShell({
   const account = (
     <div className="space-y-2 border-t border-line pt-4">
       <div className="flex items-center gap-2.5 px-3">
-        {code && (
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-forest text-xs font-medium text-paper">
-            {code}
-          </span>
-        )}
         <div className="min-w-0">
           <p className="truncate text-sm text-ink">{name}</p>
           {email && <p className="truncate text-xs text-ink-faint">{email}</p>}
