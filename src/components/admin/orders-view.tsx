@@ -5,6 +5,7 @@ import { DmStatusSelect } from "@/components/admin/dm-status-select";
 import { CancelOrderButton } from "@/components/admin/cancel-order-button";
 import { DM_CANCELLABLE, FULFILLMENT_LABELS, SOURCE_LABELS } from "@/lib/constants";
 import { formatDateShort } from "@/lib/format";
+import { formatRemaining } from "@/lib/time";
 import { cn } from "@/lib/cn";
 
 const isDm = (o: AdminOrderListRow) => o.source === "tiktok_dm";
@@ -29,9 +30,30 @@ function TypeLabel({ o }: { o: AdminOrderListRow }) {
   return isDm(o) ? <span>{o.type === "pickup" ? "Abholung" : "Hermes"}</span> : <span>{FULFILLMENT_LABELS[o.type]}</span>;
 }
 
-function StatusCell({ o }: { o: AdminOrderListRow }) {
-  return isDm(o) && isOpen(o) ? <DmStatusSelect orderId={o.id} status={o.status} type={o.type} /> : <OrderStatusBadge status={o.status} />;
+// "Anleitung gesendet": countdown to the QR-code deadline, red once it has passed
+function deadlineOf(o: AdminOrderListRow, dueHours: number) {
+  if (o.status !== "mail_sent" || !o.instructionsSentAt) return null;
+  return new Date(new Date(o.instructionsSentAt).getTime() + dueHours * 3_600_000).toISOString();
 }
+
+function StatusCell({ o, now, dueHours }: { o: AdminOrderListRow; now: number; dueHours: number }) {
+  const remaining = formatRemaining(deadlineOf(o, dueHours), now);
+  return (
+    <div>
+      {isDm(o) && isOpen(o) ? <DmStatusSelect orderId={o.id} status={o.status} type={o.type} /> : <OrderStatusBadge status={o.status} />}
+      {remaining && (
+        <p className={cn("mt-1.5 text-xs", remaining.overdue ? "font-medium text-brick" : "text-ink-faint")}>
+          {remaining.overdue ? `Fällig – ${remaining.text}` : `QR-Code: ${remaining.text}`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const isDue = (o: AdminOrderListRow, now: number, dueHours: number) => {
+  const d = deadlineOf(o, dueHours);
+  return d !== null && new Date(d).getTime() < now;
+};
 
 function Actions({ o }: { o: AdminOrderListRow }) {
   return (
@@ -47,7 +69,7 @@ function Actions({ o }: { o: AdminOrderListRow }) {
   );
 }
 
-export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
+export function OrdersView({ orders, now, dueHours }: { orders: AdminOrderListRow[]; now: number; dueHours: number }) {
   if (orders.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-line-strong px-6 py-12 text-center">
@@ -62,7 +84,7 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
       {/* phone + tablet: cards */}
       <ul className="space-y-3 lg:hidden">
         {orders.map((o) => (
-          <li key={o.id} className="rounded-md border border-line bg-paper p-4">
+          <li key={o.id} className={cn("rounded-md border bg-paper p-4", isDue(o, now, dueHours) ? "border-brick/50 bg-brick-tint/40" : "border-line")}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="break-words font-medium text-ink">{o.name}</p>
@@ -83,7 +105,7 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
             </ul>
 
             <div className="mt-3 grid gap-3 border-t border-line pt-3 sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-center">
-              <StatusCell o={o} />
+              <StatusCell o={o} now={now} dueHours={dueHours} />
               <Actions o={o} />
             </div>
           </li>
@@ -104,7 +126,7 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
           </thead>
           <tbody>
             {orders.map((o) => (
-              <tr key={o.id} className="border-b border-line align-top last:border-0 hover:bg-paper-alt/60">
+              <tr key={o.id} className={cn("border-b border-line align-top last:border-0 hover:bg-paper-alt/60", isDue(o, now, dueHours) && "bg-brick-tint/40")}>
                 <td className="px-4 py-3">
                   <p className="break-words font-medium text-ink">{o.name}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-xs text-ink-faint">
@@ -123,7 +145,7 @@ export function OrdersView({ orders }: { orders: AdminOrderListRow[] }) {
                   </ul>
                 </td>
                 <td className="w-52 px-3 py-3">
-                  <StatusCell o={o} />
+                  <StatusCell o={o} now={now} dueHours={dueHours} />
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 text-ink-muted">{formatDateShort(o.createdAt)}</td>
                 <td className="px-4 py-3">

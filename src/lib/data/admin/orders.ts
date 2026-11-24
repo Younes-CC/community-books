@@ -19,17 +19,43 @@ export type AdminOrderListRow = {
   name: string; // @tiktok-name for TikTok orders, "Vorname Nachname" for website orders
   status: string;
   bookTitles: string[];
+  instructionsSentAt: string | null; // when the order last entered "Anleitung gesendet"
 };
 
 // keeps PostgREST's `or()` mini-language safe: no separators, wildcards or quotes from user input
 const cleanTerm = (s: string) => s.replace(/[,()%*\\"'`:]/g, " ").trim();
 
-export async function getAdminOrders(filters: OrderFilters): Promise<AdminOrderListRow[]> {
+// For every order currently in "Anleitung gesendet": the moment it (last) entered that status.
+// Taken from the status history, so moving an order back and forth cannot fake an old date.
+export async function getInstructionsSentTimes(): Promise<Map<string, string>> {
+  const supabase = await createClient();
+  const { data: open, error } = await supabase.from("orders").select("id").eq("order_status", "mail_sent");
+  if (error) throw error;
+  const ids = (open ?? []).map((o) => o.id);
+  const times = new Map<string, string>();
+  if (ids.length === 0) return times;
+
+  const { data: history, error: historyError } = await supabase
+    .from("order_status_history")
+    .select("order_id, created_at")
+    .eq("to_status", "mail_sent")
+    .in("order_id", ids)
+    .order("created_at", { ascending: false });
+  if (historyError) throw historyError;
+  for (const h of history ?? []) if (!times.has(h.order_id)) times.set(h.order_id, h.created_at);
+  return times;
+}
+
+export async function getAdminOrders(
+  filters: OrderFilters,
+  sentTimes: Map<string, string>,
+  dueBefore: number,
+): Promise<AdminOrderListRow[]> {
   const supabase = await createClient();
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, source, fulfillment_type, tiktok_name, first_name, last_name, order_status, order_items(title_snapshot, released_at)",
+      "id, order_number, created_at, source, fulfillment_type, tiktok_name, first_name, last_name, order_status, mail_sent_at, order_items(title_snapshot, released_at)",
     )
     .order("created_at", { ascending: filters.sort === "alt" })
     .limit(500);
@@ -38,6 +64,10 @@ export async function getAdminOrders(filters: OrderFilters): Promise<AdminOrderL
     // everything
   } else if (filters.status === "storniert") {
     query = query.in("order_status", ["cancelled", "expired"]);
+  } else if (filters.status === "faellig") {
+    // "Anleitung gesendet" for longer than the QR-code deadline
+    const dueIds = [...sentTimes].filter(([, at]) => new Date(at).getTime() < dueBefore).map(([id]) => id);
+    query = query.in("id", dueIds.length ? dueIds : ["00000000-0000-0000-0000-000000000000"]);
   } else if (filters.status) {
     query = query.eq("order_status", filters.status);
   } else {
@@ -62,6 +92,7 @@ export async function getAdminOrders(filters: OrderFilters): Promise<AdminOrderL
     name: o.source === "tiktok_dm" ? (o.tiktok_name ?? o.first_name) : `${o.first_name} ${o.last_name}`.trim(),
     status: o.order_status,
     bookTitles: o.order_items.filter((i) => !i.released_at).map((i) => i.title_snapshot),
+    instructionsSentAt: o.order_status === "mail_sent" ? (sentTimes.get(o.id) ?? o.mail_sent_at) : null,
   }));
 }
 

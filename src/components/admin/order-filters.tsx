@@ -56,6 +56,7 @@ export function OrderFilters() {
         </label>
         <select id="status-filter" value={get("status")} onChange={(e) => set({ status: e.target.value || null })} className={select}>
           <option value="">Offene Bestellungen</option>
+          <option value="faellig">Fällig (QR-Code überfällig)</option>
           <option value="alle">Alle (inkl. storniert)</option>
           {DM_STATUSES.map((s) => (
             <option key={s} value={s}>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getAdminStats } from "@/lib/data/admin/stats";
-import { getAdminOrders } from "@/lib/data/admin/orders";
+import { getAdminOrders, getInstructionsSentTimes } from "@/lib/data/admin/orders";
+import { getAdminSettings } from "@/lib/data/settings";
+import { serverNow } from "@/lib/time";
 import { getAdminBooks } from "@/lib/data/admin/books";
 import { KpiGrid } from "@/components/admin/kpi-grid";
 import { NewOrderPanel } from "@/components/admin/new-order-panel";
@@ -15,9 +17,15 @@ type SearchParams = { status?: string; q?: string; sort?: string };
 export default async function AdminOrdersDashboard({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   await requireAdmin();
+  const dueHours = (await getAdminSettings()).qr_deadline_hours; // QR-code deadline after "Anleitung gesendet"
+  const now = serverNow();
+  const sentTimes = await getInstructionsSentTimes();
+  const dueBefore = now - dueHours * 3_600_000;
+  const overdue = [...sentTimes.values()].filter((at) => new Date(at).getTime() < dueBefore).length;
+
   const [stats, orders, books] = await Promise.all([
     getAdminStats(),
-    getAdminOrders({ status: sp.status, q: sp.q, sort: sp.sort }),
+    getAdminOrders({ status: sp.status, q: sp.q, sort: sp.sort }, sentTimes, dueBefore),
     getAdminBooks(),
   ]);
 
@@ -33,7 +41,7 @@ export default async function AdminOrdersDashboard({ searchParams }: { searchPar
 
       <NewOrderPanel books={pickerBooks} />
 
-      <KpiGrid stats={stats} />
+      <KpiGrid stats={stats} overdue={overdue} dueDays={Math.round(dueHours / 24)} />
 
       <OrderFilters />
 
@@ -42,7 +50,7 @@ export default async function AdminOrdersDashboard({ searchParams }: { searchPar
         {orders.length >= 500 && " (die ersten 500)"}
       </p>
 
-      <OrdersView orders={orders} />
+      <OrdersView orders={orders} now={now} dueHours={dueHours} />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 import type { AdminStats } from "@/lib/data/admin/stats";
 import { cn } from "@/lib/cn";
 
-export function KpiGrid({ stats }: { stats: AdminStats }) {
+export function KpiGrid({ stats, overdue, dueDays }: { stats: AdminStats; overdue: number; dueDays: number }) {
   const cards: { label: string; value: number; href: string }[] = [
     { label: "Anfragen", value: stats.requests, href: "/admin?status=new" },
     { label: "Anleitung gesendet", value: stats.instructionsSent, href: "/admin?status=mail_sent" },
@@ -14,6 +15,22 @@ export function KpiGrid({ stats }: { stats: AdminStats }) {
 
   return (
     <div>
+      {overdue > 0 && (
+        <Link
+          href="/admin?status=faellig"
+          className="mb-4 flex items-start gap-3 rounded-md border border-brick/40 bg-brick-tint px-4 py-3 text-sm text-brick"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+          <span>
+            <strong className="font-medium">
+              {overdue} {overdue === 1 ? "Bestellung ist" : "Bestellungen sind"} fällig
+            </strong>{" "}
+            — die Anleitung wurde vor mehr als {dueDays} Tagen gesendet und es kam kein QR-Code. Prüfen und ggf. stornieren, dann werden
+            die Bücher wieder frei.
+          </span>
+        </Link>
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map((c) => (
           <Link
